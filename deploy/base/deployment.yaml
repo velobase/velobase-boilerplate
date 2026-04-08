@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vibevideo
+spec:
+  selector:
+    matchLabels:
+      app: vibevideo
+  template:
+    metadata:
+      labels:
+        app: vibevideo
+    spec:
+      # imagePullSecrets:
+      # - name: your-registry-secret
+      containers:
+      - name: vibevideo
+        image: your-registry/your-org/vibevideo-web
+        ports:
+        - containerPort: 3000
+        livenessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+        env:
+        - name: APP_NAME
+          value: vibevideo
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: AUTH_TRUST_HOST
+          value: "true"
+

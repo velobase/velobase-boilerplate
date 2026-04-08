@@ -1,0 +1,148 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - dev
+      - pre
+      - prod
+    paths-ignore:
+      - 'scripts/**'
+      - 'docs/**'
+      - '*.md'
+
+env:
+  REGISTRY: crpi-j4nrutl1lrrmcvdu.us-west-1.personal.cr.aliyuncs.com
+  ORG_NAME: utopixel
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.vars.outputs.VERSION }}
+      ENV_NAME: ${{ steps.vars.outputs.ENV_NAME }}
+      COMMIT_MSG: ${{ steps.vars.outputs.COMMIT_MSG }}
+      COMMIT_AUTHOR: ${{ steps.vars.outputs.COMMIT_AUTHOR }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set shared variables
+        id: vars
+        run: |
+          VERSION=$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
+          ENV_NAME=$BRANCH_NAME
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "ENV_NAME=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "COMMIT_MSG=${COMMIT_MSG}" >> $GITHUB_OUTPUT
+          echo "COMMIT_AUTHOR=${COMMIT_AUTHOR}" >> $GITHUB_OUTPUT
+
+  build-and-deploy:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-${{ runner.os }}-
+
+      - name: Set environment file
+        run: |
+          if [ "${{ needs.setup.outputs.ENV_NAME }}" = "prod" ]; then
+            cp .env.prod .env
+          elif [ "${{ needs.setup.outputs.ENV_NAME }}" = "pre" ]; then
+            cp .env.pre .env
+          else
+            cp .env.dev .env
+          fi
+
+      - name: Debug verify env file
+        run: |
+          echo "ENV_NAME=${{ needs.setup.outputs.ENV_NAME }} VERSION=${{ needs.setup.outputs.VERSION }}"
+          echo "PWD=$(pwd)"
+          ls -la .env* || true
+          if [ -f .env ]; then
+            echo ".env present; size: $(wc -c < .env) bytes"
+            grep -E '^[A-Z0-9_]+=' .env | cut -d= -f1 | head -n 20 || true
+          else
+            echo ".env missing"
+          fi
+
+      - name: Build Next.js application
+        run: pnpm build
+
+      - name: Login to Aliyun Container Registry
+        run: |
+          echo "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Build and Push Web Docker Image
+        run: |
+          docker build -f Dockerfile.web -t ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} \
+            ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-latest
+          docker push ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-latest
+
+      - name: Build and Push Worker Docker Image
+        run: |
+          docker build -f Dockerfile.worker -t ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} \
+            ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-latest
+          docker push ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }}
+          docker push ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-latest
+
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: utopixelart/gitops
+          path: gitops
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Update Kustomization
+        run: |
+          cd gitops/apps/vibevideo/overlays/${{ needs.setup.outputs.ENV_NAME }}
+          sed -i "s|newTag:.*|newTag: ${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }}|g" kustomization.yaml
+
+      - name: Commit and push changes
+        run: |
+          cd gitops
+          git config --local user.name "${{ needs.setup.outputs.COMMIT_AUTHOR }}"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "deploy: vibevideo ${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }}
+          Commit: ${{ needs.setup.outputs.COMMIT_MSG }}
+          Author: ${{ needs.setup.outputs.COMMIT_AUTHOR }}"
+          git push
+
+      - name: Cleanup Docker Images
+        if: always()
+        run: |
+          docker rmi ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} || true
+          docker rmi ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-web:${{ needs.setup.outputs.ENV_NAME }}-latest || true
+          docker rmi ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-${{ needs.setup.outputs.VERSION }} || true
+          docker rmi ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/vibevideo-worker:${{ needs.setup.outputs.ENV_NAME }}-latest || true

@@ -1,0 +1,36 @@
+FROM node:20-slim AS runner
+WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+
+# Install dependencies
+COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile --prod --ignore-scripts && \
+    pnpm add tsx && \
+    pnpm prisma generate && \
+    rm -rf /root/.cache
+
+# Create non-root user and logs directory
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 worker && \
+    mkdir -p /app/logs && chown worker:nodejs /app/logs
+
+# Copy worker source and shared modules
+COPY --chown=worker:nodejs src/workers ./src/workers
+COPY --chown=worker:nodejs src/lib ./src/lib
+COPY --chown=worker:nodejs src/server ./src/server
+COPY --chown=worker:nodejs src/analytics ./src/analytics
+COPY --chown=worker:nodejs src/env.js ./src/env.js
+COPY --chown=worker:nodejs tsconfig.json ./
+COPY --chown=worker:nodejs .env ./
+COPY --chown=worker:nodejs public/data/disposable-domains.txt ./public/data/disposable-domains.txt
+
+USER worker
+
+# Start worker
+CMD ["node", "--import", "tsx", "src/workers/index.ts"]

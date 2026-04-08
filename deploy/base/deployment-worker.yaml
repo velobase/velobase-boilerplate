@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vibevideo-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vibevideo-worker
+  template:
+    metadata:
+      labels:
+        app: vibevideo-worker
+    spec:
+      # imagePullSecrets:
+      # - name: your-registry-secret
+      containers:
+      - name: worker
+        image: your-registry/your-org/vibevideo-worker
+        ports:
+        - containerPort: 3001
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3001
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          successThreshold: 1
+        env:
+        - name: APP_NAME
+          value: vibevideo-worker
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: WORKER_PORT
+          value: "3001"
+
