@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { db } from "@/server/db";
 import { logger } from "@/lib/logger";
 import { TOUCH_LOCK_DURATION_MS, TOUCH_RETRY_BASE_DELAY_MS, TOUCH_RETRY_MAX_DELAY_MS } from "../config/touch";
-import { sendEmail } from "../providers/email";
+import { sendEmail } from "@/server/email";
 import { renderSubscriptionRenewalReminderEmail } from "./render-subscription-renewal-reminder-email";
 import { buildManageSubscriptionUrl, normalizeReferenceType } from "./utils";
 import { getStripeClient } from "@/server/order/providers/stripe";

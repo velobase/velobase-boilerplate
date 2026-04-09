@@ -8,7 +8,7 @@ import { env } from "@/env";
 import { db } from "@/server/db";
 import { grant } from "@/server/billing/services/grant";
 import { logger } from "@/lib/logger";
-import { sendMagicLinkEmail } from "@/server/email";
+import { sendEmail, MagicLinkEmailTemplate, renderMagicLinkHtml } from "@/server/email";
 import { checkAuthRateLimit } from "@/server/ratelimit";
 import { getServerPostHog } from "@/analytics/server";
 import { AUTH_EVENTS } from "@/analytics/events/auth";
@@ -326,9 +326,14 @@ export const authConfig = {
         // Email 风控（只针对邮箱登录）
         await checkEmailSimilarityRisk(email, ip);
 
-        // Send email via Resend
         try {
-          await sendMagicLinkEmail({ to: email, url });
+          await sendEmail({
+            to: email,
+            subject: "Sign in to AI SaaS App",
+            react: MagicLinkEmailTemplate({ url }),
+            html: renderMagicLinkHtml(url),
+            text: `Sign in to AI SaaS App\n\nClick the link below:\n${url}\n\nThis link expires in 15 minutes.`,
+          });
           logger.info({ email }, "Magic link email sent");
 
           // Track successful email send (non-blocking)

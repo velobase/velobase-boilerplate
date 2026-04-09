@@ -20,6 +20,7 @@ src/
 ├── server/           # 服务端代码
 │   ├── api/          # tRPC 路由（root.ts 是注册中心）
 │   ├── auth/         # 认证
+│   ├── email/        # 统一邮件服务（providers/ + templates/）
 │   ├── billing/      # 计费
 │   ├── order/        # 订单
 │   └── ...
@@ -45,6 +46,16 @@ src/
 - 支持的登录方式：Google OAuth、GitHub OAuth、邮箱 Magic Link、密码（白名单）
 - 不要在客户端存储敏感的认证信息
 - 不要直接操作 JWT 或 session token
+
+## 邮件发送
+
+- 所有邮件发送统一使用 `sendEmail()` from `@/server/email`，不要直接调用 Resend/SendGrid SDK
+- `sendEmail()` 自动按 `EMAIL_PROVIDER` 配置的优先级链尝试多个 provider，失败自动 fallback
+- `EMAIL_PROVIDER` 格式：逗号分隔的 provider 名称，如 `resend,sendgrid`（顺序即优先级）
+- 同时提供 `react`（Resend 用）和 `html`（SendGrid 用）以确保所有 provider 兼容
+- 新增 email provider：在 `src/server/email/providers/` 创建实现 `EmailProvider` 接口的文件，在 `providers/index.ts` 注册
+- 邮件模板放在 `src/server/email/templates/`，同时提供 React 组件版和 HTML 字符串版
+- Support 模块的 SMTP（nodemailer）是独立的客服回复通道，不走 sendEmail()
 
 ## 代码约定
 

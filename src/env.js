@@ -66,7 +66,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     RESEND_WEBHOOK_SECRET: z.string().optional(),
     SENDGRID_API_KEY: z.string().optional(),
-    EMAIL_PROVIDER: z.enum(["resend", "sendgrid", "auto"]).optional().default("auto"),
+    EMAIL_PROVIDER: z.string().optional().default("resend,sendgrid"),
     // Lark Bot
     LARK_APP_ID: z.string().optional(),
     LARK_APP_SECRET: z.string().optional(),
