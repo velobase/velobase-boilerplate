@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type PaymentMethod = 'telegram_stars' | 'crypto'
+export type PaymentMethod = 'stripe' | 'crypto'
 
 interface PaymentDialogState {
   isOpen: boolean

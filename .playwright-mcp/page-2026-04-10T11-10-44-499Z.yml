@@ -1,0 +1,191 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - button "app logo AI SaaS" [ref=e6]:
+          - generic [ref=e7]:
+            - img "app logo" [ref=e8]
+            - generic [ref=e24]:
+              - generic [ref=e25]: AI
+              - generic [ref=e26]: SaaS
+        - generic [ref=e27]:
+          - button "Toggle theme" [ref=e236]:
+            - img
+            - generic [ref=e237]: Toggle theme
+          - button "Log in" [ref=e28]
+    - main [ref=e29]:
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: Monthly
+            - switch [checked] [ref=e36]
+            - generic [ref=e37]:
+              - text: Yearly
+              - generic [ref=e38]: Save 26%
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - generic [ref=e41]:
+                - heading "Free" [level=3] [ref=e42]
+                - generic [ref=e43]: $0
+                - paragraph [ref=e44]: For trying out AI SaaS
+              - list [ref=e45]:
+                - listitem [ref=e46]:
+                  - img [ref=e48]
+                  - generic [ref=e50]: Welcome credits on signup
+                - listitem [ref=e51]:
+                  - img [ref=e53]
+                  - generic [ref=e56]: Standard queue time
+                - listitem [ref=e57]:
+                  - img [ref=e59]
+                  - generic [ref=e62]: Standard license
+              - link "Get Started" [ref=e63] [cursor=pointer]:
+                - /url: /api/auth/signin
+            - generic [ref=e64]:
+              - generic [ref=e67]: MOST POPULAR
+              - generic [ref=e68]:
+                - heading "Professional" [level=3] [ref=e69]:
+                  - text: Professional
+                  - img [ref=e70]
+                - generic [ref=e72]:
+                  - generic [ref=e73]: $29.00
+                  - generic [ref=e74]: /month
+                - paragraph [ref=e75]: Billed $348.00 yearly
+              - list [ref=e76]:
+                - listitem [ref=e77]:
+                  - img [ref=e79]
+                  - generic [ref=e81]:
+                    - generic [ref=e82]: 30,000 credits
+                    - text: / month
+                    - generic [ref=e83]: ~120 videos (High Quality)
+                - listitem [ref=e84]:
+                  - img [ref=e86]
+                  - generic [ref=e88]: No waiting — priority processing
+                - listitem [ref=e89]:
+                  - img [ref=e91]
+                  - generic [ref=e93]: Up to 5 concurrent generations
+                - listitem [ref=e94]:
+                  - img [ref=e96]
+                  - generic [ref=e98]: Commercial license
+              - button "Upgrade to Pro" [ref=e99]
+              - paragraph [ref=e100]: Cancel anytime. No questions asked.
+            - generic [ref=e101]:
+              - generic [ref=e103]:
+                - heading "Premium" [level=3] [ref=e104]:
+                  - text: Premium
+                  - img [ref=e105]
+                - generic [ref=e107]:
+                  - generic [ref=e108]: $79.00
+                  - generic [ref=e109]: /month
+                - paragraph [ref=e110]: Billed $948.00 yearly
+              - list [ref=e111]:
+                - listitem [ref=e112]:
+                  - img [ref=e114]
+                  - generic [ref=e116]:
+                    - generic [ref=e117]: 100,000 credits
+                    - text: / month
+                    - generic [ref=e118]: ~400 videos (High Quality)
+                - listitem [ref=e119]:
+                  - img [ref=e121]
+                  - generic [ref=e123]: No waiting — top priority processing
+                - listitem [ref=e124]:
+                  - img [ref=e126]
+                  - generic [ref=e128]: Up to 10 concurrent generations
+                - listitem [ref=e129]:
+                  - img [ref=e131]
+                  - generic [ref=e133]: High quality export
+                - listitem [ref=e134]:
+                  - img [ref=e136]
+                  - generic [ref=e138]: Commercial license
+              - button "Upgrade to Premium" [ref=e139]
+              - paragraph [ref=e140]: Cancel anytime. No questions asked.
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - heading "Not ready to subscribe?" [level=2] [ref=e143]
+            - paragraph [ref=e144]: Top up with credit packs. Pay once, keep forever.
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - heading "Mini Pack" [level=3] [ref=e148]
+                - generic [ref=e149]:
+                  - generic [ref=e150]: $4.99
+                  - generic [ref=e151]: $5.99
+              - generic [ref=e152]:
+                - generic [ref=e153]:
+                  - generic [ref=e154]: Credits
+                  - generic [ref=e155]: 1,500
+                - generic [ref=e156]:
+                  - generic [ref=e157]: Cost / 1k credits
+                  - generic [ref=e158]: $3.33/1K credits
+              - button "Buy Pack" [ref=e159]
+              - button "or pay with crypto" [ref=e160]:
+                - img [ref=e161]
+                - generic [ref=e164]: or pay with crypto
+            - generic [ref=e165]:
+              - generic [ref=e166]:
+                - heading "Starter Pack" [level=3] [ref=e167]
+                - generic [ref=e168]:
+                  - generic [ref=e169]: $9.99
+                  - generic [ref=e170]: $12.99
+              - generic [ref=e171]:
+                - generic [ref=e172]:
+                  - generic [ref=e173]: Credits
+                  - generic [ref=e174]: 5,000
+                - generic [ref=e175]:
+                  - generic [ref=e176]: Cost / 1k credits
+                  - generic [ref=e177]: $2.00/1K credits
+              - button "Buy Pack" [ref=e178]
+              - button "or pay with crypto" [ref=e179]:
+                - img [ref=e180]
+                - generic [ref=e183]: or pay with crypto
+            - generic [ref=e184]:
+              - generic [ref=e185]: Best Value
+              - generic [ref=e186]:
+                - heading "Creator Pack" [level=3] [ref=e187]
+                - generic [ref=e188]:
+                  - generic [ref=e189]: $29.00
+                  - generic [ref=e190]: $39.99
+              - generic [ref=e191]:
+                - generic [ref=e192]:
+                  - generic [ref=e193]: Credits
+                  - generic [ref=e194]: 20,000
+                - generic [ref=e195]:
+                  - generic [ref=e196]: Cost / 1k credits
+                  - generic [ref=e197]: $1.45/1K credits
+              - button "Buy Pack" [ref=e198]
+              - button "or pay with crypto" [ref=e199]:
+                - img [ref=e200]
+                - generic [ref=e203]: or pay with crypto
+            - generic [ref=e204]:
+              - generic [ref=e205]:
+                - heading "Studio Pack" [level=3] [ref=e206]
+                - generic [ref=e207]:
+                  - generic [ref=e208]: $69.00
+                  - generic [ref=e209]: $99.00
+              - generic [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]: Credits
+                  - generic [ref=e213]: 50,000
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Cost / 1k credits
+                  - generic [ref=e216]: $1.38/1K credits
+              - button "Buy Pack" [ref=e217]
+              - button "or pay with crypto" [ref=e218]:
+                - img [ref=e219]
+                - generic [ref=e222]: or pay with crypto
+          - generic [ref=e224]:
+            - img [ref=e225]
+            - generic [ref=e227]: "Pro Tip: Subscriptions are ~50% cheaper per credit than packs!"
+    - contentinfo [ref=e228]:
+      - generic [ref=e229]:
+        - paragraph [ref=e231]: © 2026 Your Company. All rights reserved.
+        - generic [ref=e232]:
+          - link "Privacy Policy" [ref=e233] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e234] [cursor=pointer]:
+            - /url: /terms
+          - link "Refund Policy" [ref=e235] [cursor=pointer]:
+            - /url: /refund-policy
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e243] [cursor=pointer]:
+    - img [ref=e244]
+  - alert [ref=e247]

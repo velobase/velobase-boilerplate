@@ -44,12 +44,11 @@ export function BillingCreditsSection({ starterPack }: BillingCreditsSectionProp
 
     const result = await startCheckout({
       productId: starterPack.id,
-      amount: starterPack.price / 100,
       successUrl: `${window.location.origin}/payment/success`,
       cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
     });
 
-    if (result.status === 'DIALOG_OPENED' || result.status === 'ERROR') {
+    if (result.status === 'ERROR') {
       setIsProcessing(false);
     }
   };

@@ -236,7 +236,7 @@ export default async function BillingPage() {
               </div>
                 <div className="mt-4 flex gap-2">
                   <Button size="sm" className="flex-1" asChild>
-                  <Link href="/account/credits">Buy Credits</Link>
+                  <Link href="/pricing#credits">Buy Credits</Link>
                 </Button>
                   <RedeemCodeDialog />
             </div>

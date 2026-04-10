@@ -26,7 +26,7 @@ interface CheckoutParams {
   productId: string;
   successUrl: string;
   cancelUrl: string;
-  gateway?: "STRIPE" | "WAFFO" | "NOWPAYMENTS" | "AIRWALLEX" | "TELEGRAM_STARS";
+  gateway?: "STRIPE" | "NOWPAYMENTS";
   cryptoCurrency?: string;
   quantity?: number;
   // 业务元信息（例如下载付费墙的 videoId/source），仅存入 payment.extra，在履约阶段使用
@@ -451,41 +451,6 @@ export async function checkout({
   }
   const finalAmountCents = baseAmountCents + tronSurchargeCents;
 
-  // Airwallex subscription requires a configured recurring Price ID (in Airwallex Billing).
-  // We store it on product.metadata.airwallex.subscriptionPriceId (string).
-  const airwallexSubscriptionPriceId = (() => {
-    if (gateway !== "AIRWALLEX" || product.type !== "SUBSCRIPTION") return undefined;
-    const meta = product.metadata as
-      | { airwallex?: { subscriptionPriceId?: unknown; subscriptionPriceIdByCurrency?: unknown } }
-      | null
-      | undefined;
-    const cur = effectiveCurrency.toUpperCase();
-    const defaultCurrency = (product.currency ?? "usd").toString().toUpperCase();
-    const byCur = meta?.airwallex?.subscriptionPriceIdByCurrency;
-    if (byCur && typeof byCur === "object") {
-      const m = byCur as Record<string, unknown>;
-      const v2 = m[cur];
-      if (typeof v2 === "string" && v2.length > 0) return v2;
-    }
-    // Important:
-    // - Only allow falling back to subscriptionPriceId when we're charging in the product's default currency.
-    // - If we're charging in a localized currency (EUR/GBP/CHF), we MUST have a matching price_id,
-    //   otherwise Airwallex Billing will likely reject (price currency mismatch) or we risk wrong pricing.
-    if (cur !== defaultCurrency) return undefined;
-    const v = meta?.airwallex?.subscriptionPriceId;
-    return typeof v === "string" && v.length > 0 ? v : undefined;
-  })();
-
-  if (gateway === "AIRWALLEX" && product.type === "SUBSCRIPTION" && !airwallexSubscriptionPriceId) {
-    return {
-      status: "CONFLICT",
-      reason: "PAYMENT_METHOD_UNAVAILABLE",
-      message:
-        "Airwallex subscription is not configured for this product (missing product.metadata.airwallex.subscriptionPriceId).",
-    };
-  }
-
-
   // For Stripe gateway, ensure we have a Stripe Customer for this user
   let stripeCustomerId: string | undefined;
   if (gateway === "STRIPE") {
@@ -609,14 +574,6 @@ export async function checkout({
     }
   })();
 
-  // 查询用户信息用于 Airwallex customer_data
-  const userForCustomerData = gateway === "AIRWALLEX"
-    ? await db.user.findUnique({
-        where: { id: userId },
-        select: { email: true, name: true },
-      })
-    : null;
-
   // 合并业务 metadata（调用方传入的 metadata + 内部的订阅升级信息）
   const effectiveSubscriptionUpgrade = subscriptionUpgradeContext ?? cryptoSubscriptionUpgrade;
   const mergedMetadata =
@@ -648,22 +605,6 @@ export async function checkout({
       SuccessURL: successUrl,
       CancelURL: cancelUrl,
       ...(stripeCustomerId ? { stripeCustomerId } : {}),
-      ...(gateway === "AIRWALLEX"
-        ? {
-            airwallex: {
-              // Keep existing provider data (e.g. payment intent details) if present.
-              ...(((payment.extra ?? {}) as Record<string, unknown>).airwallex as Record<string, unknown> | undefined),
-              ...(airwallexSubscriptionPriceId ? { subscriptionPriceId: airwallexSubscriptionPriceId } : {}),
-              // Include trial config so provider can set trial_ends_at for Billing Checkout.
-              ...(product.hasTrial && typeof product.trialDays === "number" && product.trialDays > 0
-                ? { trialDays: product.trialDays }
-                : {}),
-              // Customer data for prefilling checkout
-              ...(userForCustomerData?.email ? { customerEmail: userForCustomerData.email } : {}),
-              ...(userForCustomerData?.name ? { customerName: userForCustomerData.name } : {}),
-            },
-          }
-        : {}),
       ...(finalMetadata ? { metadata: finalMetadata } : {}),
     },
   };

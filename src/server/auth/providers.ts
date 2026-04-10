@@ -13,7 +13,14 @@ import type { Provider } from "next-auth/providers";
 
 export const oauthProviders: Provider[] = [
   GoogleProvider,
-  GitHubProvider,
+  GitHubProvider({
+    // GitHub adds `iss` param to OAuth callback (RFC 9207). The underlying
+    // oauth4webapi library always validates `iss` when present, comparing it
+    // against AuthorizationServer.issuer. Auth.js defaults this to
+    // "https://authjs.dev" for non-OIDC providers, which mismatches GitHub's
+    // actual value. Setting issuer here fixes the validation.
+    issuer: "https://github.com/login/oauth",
+  }),
 ];
 
 const oauthProviderIds = new Set(["google", "github"]);

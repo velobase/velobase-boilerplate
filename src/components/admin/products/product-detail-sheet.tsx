@@ -164,9 +164,9 @@ export function ProductDetailSheet({
               </TabsContent>
 
               <TabsContent value="metadata" className="space-y-6 m-0">
-                <Section title="Airwallex 配置">
+                <Section title="Metadata">
                   <pre className="bg-muted p-4 rounded-md text-xs font-mono overflow-auto max-h-[300px]">
-                    {JSON.stringify((product.metadata as Record<string, unknown> | null)?.airwallex, null, 2)}
+                    {JSON.stringify(product.metadata, null, 2)}
                   </pre>
                 </Section>
 

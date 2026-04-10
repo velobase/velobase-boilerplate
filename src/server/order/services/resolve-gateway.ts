@@ -1,17 +1,14 @@
 /**
  * Payment gateway resolution logic.
  *
- * Currently forced to NOWPAYMENTS (crypto-only).
- * Credit card gateways (Stripe/Airwallex) are disabled.
- *
- * Previous priority order (for reference):
- * 1. Explicit gateway input (always wins)
- * 2. FORCE_PAYMENT_GATEWAY env var (for testing, bypasses geo-routing)
- * 3. User preference (e.g., NOWPAYMENTS)
- * 4. Default: Stripe (Airwallex disabled 2026-01-15)
+ * Priority order:
+ * 1. Explicit gateway input from checkout call (always wins)
+ * 2. FORCE_PAYMENT_GATEWAY env var (for testing)
+ * 3. Default: STRIPE
  */
 
 import type { PaymentGateway } from "../providers/types";
+import { env } from "@/server/shared/env";
 
 export interface ResolveGatewayParams {
   userId: string;
@@ -21,8 +18,12 @@ export interface ResolveGatewayParams {
   clientIp?: string;
 }
 
-export async function resolvePaymentGateway(_params: ResolveGatewayParams): Promise<PaymentGateway> {
-  // All payments are routed to crypto (NOWPAYMENTS) — card gateways disabled.
-  return "NOWPAYMENTS";
+export async function resolvePaymentGateway(params: ResolveGatewayParams): Promise<PaymentGateway> {
+  if (params.gatewayInput) return params.gatewayInput;
+
+  const forced = env.FORCE_PAYMENT_GATEWAY as PaymentGateway | undefined;
+  if (forced) return forced;
+
+  return "STRIPE";
 }
 

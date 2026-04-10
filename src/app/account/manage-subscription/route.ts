@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAppBaseUrl } from "@/server/touch/services/utils";
 import { auth } from "@/server/auth";
-import { db } from "@/server/db";
 import { getStripeClient } from "@/server/order/providers/stripe";
 import { getOrCreateStripeCustomer } from "@/server/order/services/stripe-customer";
 
@@ -19,22 +18,6 @@ export async function GET() {
   }
 
   try {
-    // If the user is currently subscribed via Airwallex, route them to our own portal.
-    const userSub = await db.userSubscription.findFirst({
-      where: {
-        userId: session.user.id,
-        deletedAt: null,
-        gatewaySubscriptionId: { not: "" },
-        status: { in: ["ACTIVE", "PAST_DUE", "UNPAID", "TRIALING"] },
-      },
-      orderBy: { createdAt: "desc" },
-      select: { gateway: true },
-    });
-
-    if (userSub?.gateway?.toUpperCase() === "AIRWALLEX") {
-      return NextResponse.redirect(`${baseUrl}/account/manage-subscription/airwallex`);
-    }
-
     const stripeCustomerId = await getOrCreateStripeCustomer(session.user.id);
     const stripe = getStripeClient();
 

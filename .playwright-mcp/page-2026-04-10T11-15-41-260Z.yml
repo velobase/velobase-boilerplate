@@ -1,0 +1,167 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - button "app logo AI SaaS" [ref=e6]:
+          - generic [ref=e7]:
+            - img "app logo" [ref=e8]
+            - generic [ref=e24]:
+              - generic [ref=e25]: AI
+              - generic [ref=e26]: SaaS
+        - generic [ref=e27]:
+          - button "Toggle theme" [ref=e236]:
+            - img
+            - generic [ref=e237]: Toggle theme
+          - button "Log in" [ref=e28]
+    - main [ref=e29]:
+      - generic [ref=e249]:
+        - generic [ref=e251]:
+          - generic [ref=e252]: Monthly
+          - switch [checked] [ref=e253]
+          - generic [ref=e254]:
+            - text: Yearly
+            - generic [ref=e255]: "-26%"
+        - generic [ref=e256]:
+          - generic [ref=e257]:
+            - generic [ref=e260]: MOST POPULAR
+            - generic [ref=e261]:
+              - heading "Professional" [level=3] [ref=e262]:
+                - text: Professional
+                - img [ref=e263]
+              - generic [ref=e265]:
+                - generic [ref=e266]: $29.00
+                - generic [ref=e267]: /month
+              - paragraph [ref=e268]: Billed $348.00 yearly
+            - list [ref=e269]:
+              - listitem [ref=e270]:
+                - img [ref=e272]
+                - generic [ref=e274]:
+                  - generic [ref=e275]: 30,000 credits
+                  - text: / month
+                  - generic [ref=e276]: ~120 videos (High Quality)
+              - listitem [ref=e277]:
+                - img [ref=e279]
+                - generic [ref=e281]: No waiting — priority processing
+              - listitem [ref=e282]:
+                - img [ref=e284]
+                - generic [ref=e286]: Up to 5 concurrent generations
+              - listitem [ref=e287]:
+                - img [ref=e289]
+                - generic [ref=e291]: Commercial license
+            - button "Upgrade to Pro" [ref=e292]
+            - paragraph [ref=e293]: Cancel anytime. No questions asked.
+          - generic [ref=e294]:
+            - generic [ref=e296]:
+              - heading "Premium" [level=3] [ref=e297]:
+                - text: Premium
+                - img [ref=e298]
+              - generic [ref=e300]:
+                - generic [ref=e301]: $79.00
+                - generic [ref=e302]: /month
+              - paragraph [ref=e303]: Billed $948.00 yearly
+            - list [ref=e304]:
+              - listitem [ref=e305]:
+                - img [ref=e307]
+                - generic [ref=e309]:
+                  - generic [ref=e310]: 100,000 credits
+                  - text: / month
+                  - generic [ref=e311]: ~400 videos (High Quality)
+              - listitem [ref=e312]:
+                - img [ref=e314]
+                - generic [ref=e316]: No waiting — top priority processing
+              - listitem [ref=e317]:
+                - img [ref=e319]
+                - generic [ref=e321]: Up to 10 concurrent generations
+              - listitem [ref=e322]:
+                - img [ref=e324]
+                - generic [ref=e326]: High quality export
+              - listitem [ref=e327]:
+                - img [ref=e329]
+                - generic [ref=e331]: Commercial license
+            - button "Upgrade to Premium" [ref=e332]
+            - paragraph [ref=e333]: Cancel anytime. No questions asked.
+        - generic [ref=e334]:
+          - heading "Credit packs" [level=2] [ref=e336]:
+            - img [ref=e337]
+            - text: Credit packs
+          - generic [ref=e342]:
+            - generic [ref=e343]:
+              - generic [ref=e344]:
+                - img [ref=e346]
+                - generic [ref=e351]:
+                  - generic [ref=e352]:
+                    - text: 1,500
+                    - generic [ref=e353]: credits
+                  - generic [ref=e354]:
+                    - generic [ref=e355]: $4.99
+                    - generic [ref=e356]: $5.99
+              - generic [ref=e357]:
+                - button "Pay with crypto" [ref=e358]:
+                  - img [ref=e359]
+                - button "Buy" [ref=e362]
+            - generic [ref=e363]:
+              - generic [ref=e364]:
+                - img [ref=e366]
+                - generic [ref=e371]:
+                  - generic [ref=e372]:
+                    - text: 5,000
+                    - generic [ref=e373]: credits
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: $9.99
+                    - generic [ref=e376]: $12.99
+              - generic [ref=e377]:
+                - button "Pay with crypto" [ref=e378]:
+                  - img [ref=e379]
+                - button "Buy" [ref=e382]
+            - generic [ref=e383]:
+              - generic [ref=e384]:
+                - img [ref=e385]
+                - text: Best Value
+              - generic [ref=e387]:
+                - img [ref=e389]
+                - generic [ref=e394]:
+                  - generic [ref=e395]:
+                    - text: 20,000
+                    - generic [ref=e396]: credits
+                  - generic [ref=e397]:
+                    - generic [ref=e398]: $29.00
+                    - generic [ref=e399]: $39.99
+              - generic [ref=e400]:
+                - button "Pay with crypto" [ref=e401]:
+                  - img [ref=e402]
+                - button "Buy" [ref=e405]
+            - generic [ref=e406]:
+              - generic [ref=e407]:
+                - img [ref=e409]
+                - generic [ref=e414]:
+                  - generic [ref=e415]:
+                    - text: 50,000
+                    - generic [ref=e416]: credits
+                  - generic [ref=e417]:
+                    - generic [ref=e418]: $69.00
+                    - generic [ref=e419]: $99.00
+              - generic [ref=e420]:
+                - button "Pay with crypto" [ref=e421]:
+                  - img [ref=e422]
+                - button "Buy" [ref=e425]
+        - generic [ref=e427]:
+          - generic [ref=e428]:
+            - generic [ref=e429]: Best Value
+            - generic [ref=e430]:
+              - generic [ref=e431]: $29.00
+              - generic [ref=e432]: /mo
+          - button "Upgrade Now" [ref=e433]
+    - contentinfo [ref=e228]:
+      - generic [ref=e229]:
+        - paragraph [ref=e231]: © 2026 Your Company. All rights reserved.
+        - generic [ref=e232]:
+          - link "Privacy Policy" [ref=e233] [cursor=pointer]:
+            - /url: /privacy
+          - link "Terms of Service" [ref=e234] [cursor=pointer]:
+            - /url: /terms
+          - link "Refund Policy" [ref=e235] [cursor=pointer]:
+            - /url: /refund-policy
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e243] [cursor=pointer]:
+    - img [ref=e244]
+  - alert [ref=e247]

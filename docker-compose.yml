@@ -19,6 +19,18 @@ services:
     volumes:
       - redis_data:/data
 
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    profiles: ["stripe"]
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+    command: >
+      listen
+      --forward-to http://host.docker.internal:3000/api/webhooks/stripe
+      --skip-verify
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   postgres_data:
   redis_data:

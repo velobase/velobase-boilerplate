@@ -75,9 +75,9 @@ const accountPages: NavItem[] = [
   },
   {
     title: "Credits",
-    href: "/account/credits",
+    href: "/pricing#credits",
     icon: Coins,
-    description: "View credit balance & usage",
+    description: "Buy credit packs",
   },
   {
     title: "Settings",

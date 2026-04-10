@@ -1,0 +1,5 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - img "app logo" [ref=e4]
+    - paragraph [ref=e20]: Loading sign in options...
+  - region "Notifications alt+T"

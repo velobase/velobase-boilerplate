@@ -50,18 +50,4 @@ export const stripeSubscriptionSchema = z.object({
   current_period_end: z.number().nullable().optional(),
 });
 
-// Waffo webhook schemas
-export const waffoPaymentWebhookSchema = z.object({
-  status: z.string(),
-  transaction_id: z.string().optional(),
-  subscription_id: z.string().optional(),
-  subscription_period: z.number().optional(),
-  amount_cents: z.number().optional(),
-  currency: z.string().optional(),
-});
-
-export const waffoSubscriptionWebhookSchema = z.object({
-  subscription_status: z.string(),
-  subscription_id: z.string(),
-});
 

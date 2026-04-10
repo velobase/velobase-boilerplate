@@ -21,8 +21,6 @@ interface ProductListTableProps {
   pageSize: number
   onToggleAvailability: (productId: string) => void
   isToggling: boolean
-  onSyncAirwallex: (productId: string) => void
-  isSyncing: boolean
   onViewDetail: (product: Product) => void
 }
 
@@ -45,8 +43,6 @@ export function ProductListTable({
   pageSize,
   onToggleAvailability,
   isToggling,
-  onSyncAirwallex,
-  isSyncing,
   onViewDetail,
 }: ProductListTableProps) {
   return (
@@ -60,7 +56,6 @@ export function ProductListTable({
             <TableHead className="w-[80px]">状态</TableHead>
             <TableHead className="w-[80px]">上架</TableHead>
             <TableHead className="w-[80px]">排序</TableHead>
-            <TableHead className="w-[160px]">Airwallex 订阅</TableHead>
             <TableHead className="w-[120px]">创建时间</TableHead>
             <TableHead className="w-[80px]">操作</TableHead>
           </TableRow>
@@ -129,34 +124,6 @@ export function ProductListTable({
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {product.sortOrder}
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  {product.type !== "SUBSCRIPTION" ? (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  ) : (() => {
-                      const meta = (product.metadata as Record<string, unknown> | null) ?? {}
-                      const priceId = (meta.airwallex as Record<string, unknown> | null)?.subscriptionPriceId as string | undefined
-                      const byCurrency = (meta.airwallex as Record<string, unknown> | null)?.subscriptionPriceIdByCurrency as Record<string, string> | undefined
-                      const ok =
-                        (typeof priceId === "string" && priceId.length > 0) ||
-                        (byCurrency && typeof byCurrency === "object" && Object.keys(byCurrency).length > 0)
-                      return (
-                        <div className="flex items-center justify-between gap-2">
-                          <Badge variant={ok ? "secondary" : "outline"} className="text-xs">
-                            {ok ? "已配置" : "未配置"}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs"
-                            disabled={isSyncing}
-                            onClick={() => onSyncAirwallex(product.id)}
-                          >
-                            同步
-                          </Button>
-                        </div>
-                      )
-                    })()}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {new Date(product.createdAt).toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}

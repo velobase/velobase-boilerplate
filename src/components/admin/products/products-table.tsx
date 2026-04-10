@@ -63,17 +63,7 @@ export function ProductsTable() {
     },
   })
 
-  const syncAirwallex = api.admin.syncAirwallexSubscriptionPrices.useMutation({
-    onSuccess: (res) => {
-      const ok = res.results.filter((r) => r.ok).length
-      const fail = res.results.length - ok
-      toast.success(`Airwallex 同步完成：成功 ${ok}，失败 ${fail}`)
-      void utils.admin.listProducts.invalidate()
-    },
-    onError: (err) => {
-      toast.error(err.message || "Airwallex 同步失败")
-    },
-  })
+  // Airwallex sync removed — only Stripe + NowPayments supported
 
   const updateFilter = useCallback(<K extends keyof ProductFilters>(key: K, value: ProductFilters[K]) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -108,20 +98,6 @@ export function ProductsTable() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            disabled={syncAirwallex.isPending || !data?.items?.some((p) => p.type === "SUBSCRIPTION")}
-            onClick={() => {
-              const productIds = data?.items?.filter((p) => p.type === "SUBSCRIPTION").map((p) => p.id) ?? []
-              if (productIds.length === 0) {
-                toast.message("本页没有订阅商品")
-                return
-              }
-              syncAirwallex.mutate({ productIds })
-            }}
-          >
-            {syncAirwallex.isPending ? "同步中..." : "同步 Airwallex 订阅（本页）"}
-          </Button>
           <div className="relative flex-1 sm:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -162,8 +138,6 @@ export function ProductsTable() {
         pageSize={pageSize}
         onToggleAvailability={(id) => toggleAvailability.mutate({ productId: id })}
         isToggling={toggleAvailability.isPending}
-        onSyncAirwallex={(id) => syncAirwallex.mutate({ productIds: [id] })}
-        isSyncing={syncAirwallex.isPending}
         onViewDetail={handleViewDetail}
       />
 

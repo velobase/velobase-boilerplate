@@ -7,12 +7,8 @@ function mapGateway(gateway: string | null | undefined): PaymentNotification["ga
   switch ((gateway ?? "").toUpperCase()) {
     case "STRIPE":
       return "stripe";
-    case "AIRWALLEX":
-      return "airwallex";
     case "NOWPAYMENTS":
       return "nowpayments";
-    case "WAFFO":
-      return "waffo";
     default:
       return "other";
   }

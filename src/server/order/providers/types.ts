@@ -1,6 +1,6 @@
 // Avoid importing Prisma types directly to keep provider generic
 
-export type PaymentGateway = "STRIPE" | "WAFFO" | "NOWPAYMENTS" | "AIRWALLEX" | "TELEGRAM_STARS";
+export type PaymentGateway = "STRIPE" | "NOWPAYMENTS";
 
 export type PaymentStatus =
   | "PENDING"

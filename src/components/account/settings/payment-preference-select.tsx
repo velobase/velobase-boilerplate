@@ -6,13 +6,13 @@ import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
 
-type PaymentPreference = "TELEGRAM_STARS" | "NOWPAYMENTS";
+type PaymentPreference = "STRIPE" | "NOWPAYMENTS";
 
 const OPTIONS: { value: PaymentPreference; label: string; description: string; icon: React.ElementType }[] = [
   {
-    value: "TELEGRAM_STARS",
-    label: "Credit Card (via Telegram)",
-    description: "Pay securely through Telegram",
+    value: "STRIPE",
+    label: "Credit Card",
+    description: "Pay securely with Stripe",
     icon: CreditCard,
   },
   {
@@ -34,9 +34,8 @@ export function PaymentPreferenceSelect() {
     },
   });
 
-  // AUTO/legacy STRIPE both mean Telegram Stars; map AUTO -> TELEGRAM_STARS for display
   const rawValue = data?.preference ?? "AUTO";
-  const currentValue: PaymentPreference = rawValue === "NOWPAYMENTS" ? "NOWPAYMENTS" : "TELEGRAM_STARS";
+  const currentValue: PaymentPreference = rawValue === "NOWPAYMENTS" ? "NOWPAYMENTS" : "STRIPE";
 
   const handleSelect = (value: PaymentPreference) => {
     if (value === currentValue || mutation.isPending) return;

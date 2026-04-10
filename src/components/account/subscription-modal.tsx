@@ -38,7 +38,7 @@ export function SubscriptionModal({ products, children }: SubscriptionModalProps
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { startCheckout } = useSmartCheckout();
-  const subscriptionsDisabled = true;
+  const subscriptionsDisabled = false;
 
   // 筛选付费产品
   const proProducts = useMemo(() => {
@@ -75,7 +75,6 @@ export function SubscriptionModal({ products, children }: SubscriptionModalProps
     try {
       const result = await startCheckout({
         productId: selectedProduct.id,
-        isSubscription: true,
         successUrl: `${window.location.origin}/payment/success`,
         cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
       });

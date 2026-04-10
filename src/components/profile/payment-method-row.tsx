@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 
-type PaymentPreference = "TELEGRAM_STARS" | "NOWPAYMENTS";
+type PaymentPreference = "STRIPE" | "NOWPAYMENTS";
 
 const OPTIONS: { value: PaymentPreference; label: string; icon: React.ElementType }[] = [
-  { value: "TELEGRAM_STARS", label: "Credit Card (via Telegram)", icon: CreditCard },
+  { value: "STRIPE", label: "Credit Card", icon: CreditCard },
   { value: "NOWPAYMENTS", label: "Cryptocurrency", icon: Wallet },
 ];
 
@@ -41,7 +41,7 @@ export function PaymentMethodRow() {
   });
 
   const rawValue = data?.preference ?? "AUTO";
-  const currentValue: PaymentPreference = rawValue === "NOWPAYMENTS" ? "NOWPAYMENTS" : "TELEGRAM_STARS";
+  const currentValue: PaymentPreference = rawValue === "NOWPAYMENTS" ? "NOWPAYMENTS" : "STRIPE";
   const currentOption = OPTIONS.find((o) => o.value === currentValue) ?? OPTIONS[0]!;
   const CurrentIcon = currentOption.icon;
 

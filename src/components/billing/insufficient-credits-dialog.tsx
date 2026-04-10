@@ -95,16 +95,7 @@ export function InsufficientCreditsDialog({
         productId,
         successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent(returnPath)}`,
         cancelUrl: `${window.location.origin}${returnPath}`,
-        isSubscription: kind === 'subscription',
-        amount: kind === 'credits' ? price / 100 : undefined,
       });
-
-      if (result.status === "DIALOG_OPENED") {
-        // Avoid stacking dialogs.
-        setIsProcessing(null);
-        onOpenChange(false);
-        return;
-      }
 
       if (result.status === "ERROR") {
         toast.error(result.message || "Failed to initiate purchase");

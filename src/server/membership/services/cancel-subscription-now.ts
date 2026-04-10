@@ -1,5 +1,4 @@
 import { db } from "@/server/db";
-import { cancelAirwallexSubscription } from "@/server/order/providers/airwallex";
 import { getStripeClient } from "@/server/order/providers/stripe";
 import { logger } from "@/server/shared/telemetry/logger";
 
@@ -51,32 +50,6 @@ export async function cancelSubscriptionNow(
             gatewaySubscriptionId: sub.gatewaySubscriptionId,
           },
           "cancelSubscriptionNow: failed to cancel Stripe subscription",
-        );
-      }
-    } else if (gateway === "AIRWALLEX") {
-      try {
-        const result = await cancelAirwallexSubscription(sub.gatewaySubscriptionId, {
-          immediately: true,
-          prorationBehavior: "NONE", // 不退款，与 Stripe 行为一致
-        });
-        if (!result.success) {
-          logger.error(
-            {
-              subscriptionId: sub.id,
-              gatewaySubscriptionId: sub.gatewaySubscriptionId,
-              error: result.error,
-            },
-            "cancelSubscriptionNow: failed to cancel Airwallex subscription",
-          );
-        }
-      } catch (err) {
-        logger.error(
-          {
-            err,
-            subscriptionId: sub.id,
-            gatewaySubscriptionId: sub.gatewaySubscriptionId,
-          },
-          "cancelSubscriptionNow: failed to cancel Airwallex subscription",
         );
       }
     }

@@ -58,8 +58,6 @@ interface SubscriptionCardProps {
 export function SubscriptionCard({ product, billingInterval, onRequireLogin, userTier = 'FREE' }: SubscriptionCardProps) {
   const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
-  const subscriptionsDisabled = true;
-
   const { startCheckout } = useSmartCheckout();
 
   const productTier = getProductTier(product);
@@ -77,10 +75,6 @@ export function SubscriptionCard({ product, billingInterval, onRequireLogin, use
   const isPopular = product.name.toLowerCase().includes('plus');
 
   const handlePurchase = async () => {
-    if (subscriptionsDisabled) {
-      toast.error('Subscriptions are temporarily unavailable. Please buy credits instead.');
-      return;
-    }
     // Open login modal if not logged in
     if (!session) {
       onRequireLogin?.();
@@ -109,7 +103,6 @@ export function SubscriptionCard({ product, billingInterval, onRequireLogin, use
     try {
       const result = await startCheckout({
         productId: product.id,
-        isSubscription: true,
         successUrl: `${window.location.origin}/payment/success`,
         cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
       });
@@ -258,7 +251,7 @@ export function SubscriptionCard({ product, billingInterval, onRequireLogin, use
       ) : (
         <Button
           onClick={handlePurchase}
-          disabled={subscriptionsDisabled || isProcessing}
+          disabled={isProcessing}
           className={cn(
             'w-full h-11 text-[15px] font-medium rounded-lg transition-all duration-200',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
@@ -271,8 +264,6 @@ export function SubscriptionCard({ product, billingInterval, onRequireLogin, use
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Processing...
             </>
-          ) : subscriptionsDisabled ? (
-            'Temporarily unavailable'
           ) : session ? (
             isUpgrade ? `Upgrade to ${product.name}` : `Get ${product.name}`
           ) : (

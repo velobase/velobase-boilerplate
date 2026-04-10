@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { track } from '@/analytics';
 import { BILLING_EVENTS } from '@/analytics/events/billing';
 import { useSmartCheckout } from '@/hooks/use-smart-checkout';
+import { useRouter } from 'next/navigation';
 import { SALES_PAUSED } from '@/config/decommission';
 
 interface ProductItem {
@@ -38,6 +39,7 @@ export function CreditsPackageCard({ product, onRequireLogin }: CreditsPackageCa
   const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
   const salesPaused = SALES_PAUSED;
+  const router = useRouter();
 
   const { startCheckout } = useSmartCheckout();
 
@@ -74,15 +76,11 @@ export function CreditsPackageCard({ product, onRequireLogin }: CreditsPackageCa
 
     const result = await startCheckout({
       productId: product.id,
-      // IMPORTANT: charge the current price (discounted if applicable),
-      // not the strikethrough/original price.
-      amount: chargedPriceCents / 100,
       successUrl: `${window.location.origin}/payment/success`,
       cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
     });
 
-    // Only reset processing if dialog opened or error (redirects handle themselves)
-    if (result.status === 'DIALOG_OPENED' || result.status === 'ERROR') {
+    if (result.status === 'ERROR') {
       setIsProcessing(false);
     }
   };
@@ -221,6 +219,19 @@ export function CreditsPackageCard({ product, onRequireLogin }: CreditsPackageCa
           'Sign in to Buy'
         )}
       </Button>
+
+      {!salesPaused && (
+        <button
+          onClick={() => {
+            if (!session) { onRequireLogin?.(); return; }
+            router.push(`/payment/select-crypto?productId=${product.id}`);
+          }}
+          className="mt-2 w-full flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        >
+          <Wallet className="w-3 h-3" />
+          <span>or pay with crypto</span>
+        </button>
+      )}
     </div>
   );
 }

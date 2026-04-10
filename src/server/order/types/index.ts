@@ -16,7 +16,7 @@ export type PaymentStatus =
   | "FAILED"
   | "EXPIRED"
   | "REFUNDED";
-export type PaymentGateway = "STRIPE" | "PAYPAL" | "INTERNAL" | "WAFFO" | "NOWPAYMENTS";
+export type PaymentGateway = "STRIPE" | "NOWPAYMENTS";
 
 // Product types
 export type ProductInterval = "month" | "year";

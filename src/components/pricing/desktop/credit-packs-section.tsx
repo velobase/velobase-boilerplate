@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Sparkles, Zap } from 'lucide-react';
+import { Sparkles, Wallet, Zap } from 'lucide-react';
 import type { Product } from './pricing-desktop';
 import { SALES_PAUSED } from '@/config/decommission';
 
@@ -11,9 +11,10 @@ interface CreditPacksSectionProps {
   creditsPackages: Product[];
   loadingId: string | null;
   onPurchase: (productId: string) => void;
+  onCryptoPurchase?: (productId: string) => void;
 }
 
-export function CreditPacksSection({ creditsPackages, loadingId, onPurchase }: CreditPacksSectionProps) {
+export function CreditPacksSection({ creditsPackages, loadingId, onPurchase, onCryptoPurchase }: CreditPacksSectionProps) {
   const salesPaused = SALES_PAUSED;
   return (
     <div className="relative py-12 border-t border-border">
@@ -22,7 +23,7 @@ export function CreditPacksSection({ creditsPackages, loadingId, onPurchase }: C
         <p className="text-muted-foreground">Top up with credit packs. Pay once, keep forever.</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+      <div data-section="credits" className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto scroll-mt-8">
         {creditsPackages.map((pack) => {
           const isPopular = pack.name.toLowerCase().includes('creator'); 
           return (
@@ -80,6 +81,17 @@ export function CreditPacksSection({ creditsPackages, loadingId, onPurchase }: C
               >
                  {loadingId === pack.id ? <Sparkles className="w-4 h-4 animate-spin" /> : salesPaused ? 'Paused' : 'Buy Pack'}
               </Button>
+
+              {onCryptoPurchase && (
+                <button
+                  onClick={() => onCryptoPurchase(pack.id)}
+                  disabled={salesPaused || loadingId !== null}
+                  className="mt-2 w-full flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors disabled:pointer-events-none"
+                >
+                  <Wallet className="w-3 h-3" />
+                  <span>or pay with crypto</span>
+                </button>
+              )}
             </div>
           )
         })}

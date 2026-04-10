@@ -350,69 +350,6 @@ export async function createAffiliateEarningForStripeSubscriptionRenewal(params:
   });
 }
 
-export async function createAffiliateEarningForAirwallexSubscriptionRenewal(params: {
-  referredUserId: string;
-  subscriptionId: string;
-  invoiceId: string;
-  amountCents: number;
-}): Promise<void> {
-  await db.$transaction(async (tx) => {
-    const user = await tx.user.findUnique({
-      where: { id: params.referredUserId },
-      select: { id: true, referredById: true },
-    });
-    if (!user?.referredById) return;
-    if (user.referredById === user.id) return;
-
-    const commissionCents = computeCommissionCents(params.amountCents);
-    if (commissionCents <= 0) return;
-
-    const { state, availableAt } = computeEarningState({ paymentGateway: "AIRWALLEX" });
-
-    const affiliateUserId = user.referredById;
-    await lockUserRow(tx, affiliateUserId);
-    const account = await getOrCreateAccount(tx, affiliateUserId);
-
-    const earning = await tx.affiliateEarning.upsert({
-      where: {
-        sourceType_sourceExternalId_sourceSequence: {
-          sourceType: "SUBSCRIPTION_RENEWAL" satisfies AffiliateEarningSourceType,
-          sourceExternalId: params.invoiceId,
-          sourceSequence: 0,
-        },
-      },
-      create: {
-        sourceType: "SUBSCRIPTION_RENEWAL",
-        sourceExternalId: params.invoiceId,
-        sourceSequence: 0,
-        affiliateUserId,
-        referredUserId: user.id,
-        subscriptionId: params.subscriptionId,
-        paymentGateway: "AIRWALLEX",
-        grossAmountCents: params.amountCents,
-        commissionRateBps: COMMISSION_RATE_BPS,
-        commissionCents,
-        state,
-        availableAt,
-      },
-      update: { availableAt },
-      select: { id: true, commissionCents: true, state: true },
-    });
-
-    await createLedgerEntryAndApply(tx, {
-      userId: affiliateUserId,
-      accountId: account.id,
-      kind: "EARNING_CREATED",
-      referenceType: "EARNING",
-      referenceId: earning.id,
-      idempotencyKey: `earning_created:${earning.id}`,
-      deltaPendingCents: earning.state === "PENDING" ? earning.commissionCents : 0,
-      deltaAvailableCents: earning.state === "AVAILABLE" ? earning.commissionCents : 0,
-      meta: { invoiceId: params.invoiceId, subscriptionId: params.subscriptionId },
-    });
-  });
-}
-
 export async function requestAffiliateCashout(params: {
   userId: string;
   amountCents: number;

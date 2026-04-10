@@ -9,27 +9,3 @@ export const getStripeSecretKey = () => {
 export const getStripeWebhookSecret = () => {
   return env.STRIPE_WEBHOOK_SECRET ?? "";
 };
-
-export const getAirwallexClientId = () => {
-  return env.AIRWALLEX_CLIENT_ID;
-};
-
-export const getAirwallexApiKey = () => {
-  return env.AIRWALLEX_API_KEY;
-};
-
-export const getAirwallexWebhookSecret = () => {
-  return env.AIRWALLEX_WEBHOOK_SECRET;
-};
-
-export const getAirwallexAccountId = () => {
-  return env.AIRWALLEX_ACCOUNT_ID;
-};
-
-export const getAirwallexEnv = () => {
-  return env.AIRWALLEX_ENV;
-};
-
-export const getAirwallexBaseUrl = () => {
-  return env.AIRWALLEX_BASE_URL ?? "";
-};

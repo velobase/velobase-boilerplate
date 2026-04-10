@@ -65,7 +65,6 @@ export function PricingDesktop({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
   const { startCheckout } = useSmartCheckout();
-  const subscriptionsDisabled = true;
   const salesPaused = SALES_PAUSED;
 
   // --- Data Processing ---
@@ -90,10 +89,6 @@ export function PricingDesktop({
   // --- Handlers ---
   // For subscriptions: always card checkout (crypto subscriptions not supported)
   const handleSubscriptionPurchase = async (productId: string) => {
-    if (subscriptionsDisabled) {
-      toast.error('Subscriptions are temporarily unavailable. Please buy credits instead.');
-      return;
-    }
     if (!isLoggedIn) {
       router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
       return;
@@ -102,7 +97,6 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      isSubscription: true,
       successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
       cancelUrl: `${window.location.origin}/pricing`,
     });
@@ -117,8 +111,7 @@ export function PricingDesktop({
     setLoadingId(null);
   };
 
-  // For credit packs: use smart checkout (respects user preference)
-  const handleCreditPackPurchase = async (productId: string, price: number) => {
+  const handleCreditPackPurchase = async (productId: string) => {
     if (!isLoggedIn) {
       router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
       return;
@@ -127,14 +120,21 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      amount: price / 100,
       successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
-      cancelUrl: `${window.location.origin}/pricing`,
+      cancelUrl: `${window.location.origin}/pricing#credits`,
     });
 
-    if (result.status === 'DIALOG_OPENED' || result.status === 'ERROR') {
+    if (result.status === 'ERROR') {
       setLoadingId(null);
     }
+  };
+
+  const handleCryptoPurchase = (productId: string) => {
+    if (!isLoggedIn) {
+      router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
+      return;
+    }
+    router.push(`/payment/select-crypto?productId=${productId}`);
   };
 
   return (
@@ -159,7 +159,7 @@ export function PricingDesktop({
               product={starterPlan}
               userTier={userTier}
               isLoading={loadingId === starterPlan.id}
-              disabled={subscriptionsDisabled}
+              disabled={salesPaused}
               onPurchase={() => { void handleSubscriptionPurchase(starterPlan.id); }}
             />
           )}
@@ -171,7 +171,7 @@ export function PricingDesktop({
               interval={interval}
               userTier={userTier}
               isLoading={loadingId === plan.id}
-              disabled={subscriptionsDisabled || salesPaused}
+              disabled={salesPaused}
               onPurchase={() => { void handleSubscriptionPurchase(plan.id); }}
               isPopular={plan.name.toUpperCase().includes('PRO') || plan.name.toUpperCase().includes('PLUS')}
             />
@@ -182,10 +182,10 @@ export function PricingDesktop({
       <CreditPacksSection 
         creditsPackages={creditsPackages}
         loadingId={loadingId}
-        onPurchase={(id) => { 
-          const pack = creditsPackages.find(p => p.id === id);
-          void handleCreditPackPurchase(id, pack?.price ?? 0); 
+        onPurchase={(id) => {
+          void handleCreditPackPurchase(id);
         }}
+        onCryptoPurchase={handleCryptoPurchase}
       />
 
     </div>

@@ -66,9 +66,8 @@ export async function checkSubscriptionUpgrade(
 
   if (!userSub?.planId || !userSub.gatewaySubscriptionId) return undefined;
 
-  // 支持 Stripe 和 Airwallex 订阅的升级
   const gateway = userSub.gateway?.toUpperCase();
-  if (gateway !== "STRIPE" && gateway !== "AIRWALLEX") {
+  if (gateway !== "STRIPE") {
     return undefined;
   }
 

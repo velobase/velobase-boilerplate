@@ -65,6 +65,18 @@ src/
 - 本地开发通过 `docker compose up -d` 一键启动 PostgreSQL + Redis
 - 生产环境通过 `DATABASE_URL` 和 `REDIS_*` 环境变量连接云服务（Neon/Supabase + Upstash）
 
+## 支付
+
+- 发起支付必须通过 `trpc.order.checkout` tRPC，禁止在前端直接调用 Stripe SDK
+- 支持的网关：Stripe（默认）、NowPayments（加密货币）；网关通过 `resolvePaymentGateway()` 自动选择
+- 支付状态更新仅由 Webhook 驱动（`/api/webhooks/stripe`），前端 `confirmPayment` 仅作补偿轮询
+- 权益发放通过 `fulfillment/manager.ts`，禁止在 Webhook handler 中直接操作用户余额或权益
+- 积分操作通过 `billing` 域的 `grant/deduct`，不直接写 DB
+- 订阅管理通过 `membership` 域，禁止直接操作 `UserSubscription` 表
+- 每笔资金变动必须有 `PaymentTransaction` 记录（不可变流水）
+- 新增支付网关：实现 `PaymentProvider` 接口 → `init-providers.ts` 注册 → 添加 Webhook 路由
+- 不要硬编码商品价格，应通过 Product 表查询
+
 ## 代码约定
 
 - 所有 mutation 必须使用 `protectedProcedure`（类型强制）

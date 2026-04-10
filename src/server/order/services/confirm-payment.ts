@@ -77,9 +77,8 @@ export async function confirmPaymentById(
     return { status: "SUCCEEDED", paymentId, orderId };
   }
 
-  // Only Stripe / NowPayments / Airwallex are supported for active confirmation
   const gateway = payment.paymentGateway?.toUpperCase();
-  if (gateway !== "STRIPE" && gateway !== "NOWPAYMENTS" && gateway !== "AIRWALLEX") {
+  if (gateway !== "STRIPE" && gateway !== "NOWPAYMENTS") {
     return { status: payment.status === "FAILED" ? "FAILED" : "PENDING", paymentId, orderId };
   }
 
@@ -94,11 +93,6 @@ export async function confirmPaymentById(
   } else if (gateway === "NOWPAYMENTS") {
     // NowPayments uses payment_id as both checkoutSessionId and gatewayTransactionId
     checkoutSessionId = getNowPaymentsPaymentId(payment.extra) ?? gatewayTxnId;
-  } else if (gateway === "AIRWALLEX") {
-    // Airwallex uses gatewayTransactionId:
-    // - One-off: PaymentIntent id (int_...)
-    // - Subscription: Billing Checkout id (UUID-like)
-    checkoutSessionId = undefined;
   }
 
   const provider = getProvider(gateway);

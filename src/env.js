@@ -37,15 +37,8 @@ export const env = createEnv({
     STORAGE_ENDPOINT: z.string().optional(),
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
-    // Airwallex (optional - only required if using Airwallex as payment gateway)
-    AIRWALLEX_CLIENT_ID: z.string().optional(),
-    AIRWALLEX_API_KEY: z.string().optional(),
-    AIRWALLEX_WEBHOOK_SECRET: z.string().optional(),
-    AIRWALLEX_ACCOUNT_ID: z.string().optional(),
-    AIRWALLEX_ENV: z.enum(["demo", "prod"]).optional(),
-    AIRWALLEX_BASE_URL: z.string().url().optional(),
-    // Force payment gateway for testing (bypasses geo-based routing)
-    FORCE_PAYMENT_GATEWAY: z.enum(["STRIPE", "AIRWALLEX", "NOWPAYMENTS", "TELEGRAM_STARS"]).optional(),
+    // Force payment gateway for testing (bypasses default Stripe routing)
+    FORCE_PAYMENT_GATEWAY: z.enum(["STRIPE", "NOWPAYMENTS"]).optional(),
     NOWPAYMENTS_API_KEY: z.string().optional(),
     NOWPAYMENTS_IPN_SECRET: z.string().optional(),
     NOWPAYMENTS_PAY_CURRENCY: z.string().optional().default("usdttrc20"),
@@ -96,7 +89,6 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_ENV: z.enum(["dev", "staging", "prod"]).default("dev"),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
-    NEXT_PUBLIC_AIRWALLEX_ENV: z.enum(["demo", "prod"]).optional(),
     NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: z.string().optional(),
   },
 
@@ -132,12 +124,6 @@ export const env = createEnv({
     STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    AIRWALLEX_CLIENT_ID: process.env.AIRWALLEX_CLIENT_ID,
-    AIRWALLEX_API_KEY: process.env.AIRWALLEX_API_KEY,
-    AIRWALLEX_WEBHOOK_SECRET: process.env.AIRWALLEX_WEBHOOK_SECRET,
-    AIRWALLEX_BASE_URL: process.env.AIRWALLEX_BASE_URL,
-    AIRWALLEX_ENV: process.env.AIRWALLEX_ENV,
-    AIRWALLEX_ACCOUNT_ID: process.env.AIRWALLEX_ACCOUNT_ID,
     FORCE_PAYMENT_GATEWAY: process.env.FORCE_PAYMENT_GATEWAY,
     NOWPAYMENTS_API_KEY: process.env.NOWPAYMENTS_API_KEY,
     NOWPAYMENTS_IPN_SECRET: process.env.NOWPAYMENTS_IPN_SECRET,
@@ -172,7 +158,6 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
-    NEXT_PUBLIC_AIRWALLEX_ENV: process.env.NEXT_PUBLIC_AIRWALLEX_ENV,
     NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
   },
   /**

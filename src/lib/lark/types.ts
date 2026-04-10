@@ -294,7 +294,7 @@ export interface PaymentNotification {
   /** 订单 ID */
   orderId: string;
   /** 支付网关 */
-  gateway: 'stripe' | 'airwallex' | 'nowpayments' | 'waffo' | 'telegram_stars' | 'other';
+  gateway: 'stripe' | 'nowpayments' | 'other';
   /** Payment ID（本系统 payment.id，可选） */
   paymentId?: string;
   /** 网关交易 ID（Stripe payment_intent / NowPayments payment_id 等，可选） */

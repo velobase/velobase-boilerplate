@@ -27,7 +27,6 @@ import {
   getProduct,
   updateProduct,
   toggleProductAvailability,
-  syncAirwallexSubscriptionPrices,
 } from "./procedures/products";
 
 // Orders
@@ -94,7 +93,6 @@ export const adminRouter = createTRPCRouter({
   getProduct,
   updateProduct,
   toggleProductAvailability,
-  syncAirwallexSubscriptionPrices,
 
   // Orders
   listOrders,

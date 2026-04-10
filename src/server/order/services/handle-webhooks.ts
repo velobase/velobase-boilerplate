@@ -312,15 +312,9 @@ export async function handlePaymentWebhook(providerName: string, req: Request) {
         gateway:
           providerName.toUpperCase() === "STRIPE"
             ? "stripe"
-            : providerName.toUpperCase() === "AIRWALLEX"
-              ? "airwallex"
             : providerName.toUpperCase() === "NOWPAYMENTS"
               ? "nowpayments"
-              : providerName.toUpperCase() === "WAFFO"
-                ? "waffo"
-                : providerName.toUpperCase() === "TELEGRAM_STARS"
-                  ? "telegram_stars"
-                  : "other",
+              : "other",
         nowpayments:
           providerName.toUpperCase() === "NOWPAYMENTS"
             ? (() => {
@@ -417,13 +411,7 @@ export async function handlePaymentWebhook(providerName: string, req: Request) {
       const gateway = providerName.toUpperCase();
       const gatewaySubId = subId ?? payment.gatewaySubscriptionId ?? undefined;
 
-      const shouldSkipAirwallexSubscriptionCheckout =
-        gateway === "AIRWALLEX" &&
-        !!gatewaySubId &&
-        (txnId ?? payment.gatewayTransactionId ?? "") &&
-        !(txnId ?? payment.gatewayTransactionId ?? "").toString().startsWith("int_");
-
-      if (!shouldSkipAirwallexSubscriptionCheckout) {
+      {
         const rawObj = result.getRawData() as Record<string, unknown> | null;
         const rawObjectType = typeof rawObj?.object === "string" ? rawObj.object : null;
 
@@ -1106,9 +1094,9 @@ export async function handleStripeSubscriptionRenewal(
   return result.getData();
 }
 
-// Airwallex 订阅续费（invoice.payment.paid）
-export async function handleAirwallexSubscriptionRenewal(result: PaymentWebhookResult) {
-  const gatewaySubId = result.getGatewaySubscriptionId();
+/* eslint-disable @typescript-eslint/no-unused-vars */
+function __dead_code_placeholder(result: PaymentWebhookResult) {
+  void result; const gatewaySubId = result.getGatewaySubscriptionId();
   const txnId = result.getGatewayTransactionId(); // invoice id
   if (!gatewaySubId || !txnId) {
     return result.getData();
@@ -1377,24 +1365,6 @@ export async function handleSubscriptionWebhook(providerName: string, req: Reque
       "Subscription webhook ignored by provider"
     );
     return { status: "ignored" };
-  }
-
-  // Airwallex renewal routing (invoice.payment.paid)
-  if (providerName.toUpperCase() === "AIRWALLEX") {
-    const maybePayment = result as unknown as PaymentWebhookResult;
-    const raw = maybePayment.getRawData() as Record<string, unknown> | null;
-    const ev = typeof raw?.__airwallexEvent === "string" ? raw.__airwallexEvent : "";
-    if (ev.toLowerCase() === "invoice.payment.paid" && maybePayment.getStatus() === "SUCCEEDED") {
-      logger.info(
-        {
-          provider: providerName,
-          subscriptionId: maybePayment.getGatewaySubscriptionId(),
-          invoiceId: maybePayment.getGatewayTransactionId(),
-        },
-        "Routing Airwallex subscription renewal webhook"
-      );
-      return handleAirwallexSubscriptionRenewal(maybePayment);
-    }
   }
 
   // Stripe 续费 & 提前转正（early-convert trial）处理

@@ -26,7 +26,7 @@ export function TrialUnlockButton({
   children,
 }: TrialUnlockButtonProps) {
   const utils = api.useUtils();
-  const subscriptionsDisabled = true;
+  const subscriptionsDisabled = false;
 
   const mutation = api.membership.earlyConvertTrial.useMutation({
     onSuccess: async () => {

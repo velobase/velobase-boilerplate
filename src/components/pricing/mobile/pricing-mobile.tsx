@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Coins, Sparkles, Zap } from 'lucide-react';
+import { Coins, Sparkles, Wallet, Zap } from 'lucide-react';
 
 import { BillingToggle } from './billing-toggle';
 import { PaidPlanCard } from '../desktop/pro-plan-card';
@@ -27,7 +27,6 @@ export function PricingMobile({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const router = useRouter();
   const { startCheckout } = useSmartCheckout();
-  const subscriptionsDisabled = true;
   const salesPaused = SALES_PAUSED;
 
   // --- Data Processing ---
@@ -56,10 +55,6 @@ export function PricingMobile({
   // --- Handlers ---
   // For subscriptions: always card checkout (crypto subscriptions not supported)
   const handleSubscriptionPurchase = async (productId: string) => {
-    if (subscriptionsDisabled) {
-      toast.error('Subscriptions are temporarily unavailable. Please buy credits instead.');
-      return;
-    }
     if (!isLoggedIn) {
       router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
       return;
@@ -68,7 +63,6 @@ export function PricingMobile({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      isSubscription: true,
       successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
       cancelUrl: `${window.location.origin}/pricing`,
     });
@@ -83,8 +77,7 @@ export function PricingMobile({
     setLoadingId(null);
   };
 
-  // For credit packs: use smart checkout (respects user preference)
-  const handleCreditPackPurchase = async (productId: string, price: number) => {
+  const handleCreditPackPurchase = async (productId: string) => {
     if (!isLoggedIn) {
       router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
       return;
@@ -93,14 +86,21 @@ export function PricingMobile({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      amount: price / 100,
       successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
-      cancelUrl: `${window.location.origin}/pricing`,
+      cancelUrl: `${window.location.origin}/pricing#credits`,
     });
 
-    if (result.status === 'DIALOG_OPENED' || result.status === 'ERROR') {
+    if (result.status === 'ERROR') {
       setLoadingId(null);
     }
+  };
+
+  const handleCryptoPurchase = (productId: string) => {
+    if (!isLoggedIn) {
+      router.push(`/api/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`);
+      return;
+    }
+    router.push(`/payment/select-crypto?productId=${productId}`);
   };
 
   return (
@@ -113,7 +113,7 @@ export function PricingMobile({
             product={starterPlan}
             userTier={userTier}
             isLoading={loadingId === starterPlan.id}
-            disabled={subscriptionsDisabled}
+            disabled={salesPaused}
             onPurchase={() => { void handleSubscriptionPurchase(starterPlan.id); }}
           />
         )}
@@ -125,7 +125,7 @@ export function PricingMobile({
             interval={interval}
             userTier={userTier}
             isLoading={loadingId === plan.id}
-            disabled={subscriptionsDisabled || salesPaused}
+            disabled={salesPaused}
             onPurchase={() => { void handleSubscriptionPurchase(plan.id); }}
             isPopular={plan.name.toUpperCase().includes('PRO') || plan.name.toUpperCase().includes('PLUS')}
           />
@@ -134,7 +134,7 @@ export function PricingMobile({
 
       {/* 积分包：手机端直接罗列展示 */}
       {creditsPackages.length > 0 && (
-        <div className="mt-8 px-4 space-y-4">
+        <div data-section="credits" className="mt-8 px-4 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Coins className="w-4 h-4 text-yellow-500" />
@@ -195,19 +195,29 @@ export function PricingMobile({
                     </div>
       </div>
 
-                  <Button
-                    size="sm"
-                    className={cn(
-                      "h-8 px-4 rounded-lg text-xs font-semibold shrink-0 transition-all",
-                      isPopular
-                        ? "bg-orange-600 hover:bg-orange-500 text-white shadow-md shadow-orange-900/20"
-                        : "bg-primary hover:bg-primary/90 text-primary-foreground"
-                    )}
-                    onClick={() => { void handleCreditPackPurchase(pack.id, pack.price); }}
-                    disabled={salesPaused || loadingId !== null}
-                  >
-                    {loadingId === pack.id ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : salesPaused ? 'Paused' : 'Buy'}
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleCryptoPurchase(pack.id)}
+                      disabled={salesPaused || loadingId !== null}
+                      className="h-8 px-2 flex items-center text-muted-foreground/50 hover:text-muted-foreground transition-colors disabled:pointer-events-none"
+                      title="Pay with crypto"
+                    >
+                      <Wallet className="w-3.5 h-3.5" />
+                    </button>
+                    <Button
+                      size="sm"
+                      className={cn(
+                        "h-8 px-4 rounded-lg text-xs font-semibold transition-all",
+                        isPopular
+                          ? "bg-orange-600 hover:bg-orange-500 text-white shadow-md shadow-orange-900/20"
+                          : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      )}
+                      onClick={() => { void handleCreditPackPurchase(pack.id); }}
+                      disabled={salesPaused || loadingId !== null}
+                    >
+                      {loadingId === pack.id ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : salesPaused ? 'Paused' : 'Buy'}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -221,7 +231,7 @@ export function PricingMobile({
         // 只要不是 FREE，就视为已经有订阅，不再展示「Upgrade」强 CTA
         isCurrentPlan={userTier !== 'FREE'}
         onUpgrade={() => popularPlan && void handleSubscriptionPurchase(popularPlan.id)}
-        disabled={subscriptionsDisabled}
+        disabled={salesPaused}
       />
     </div>
   );

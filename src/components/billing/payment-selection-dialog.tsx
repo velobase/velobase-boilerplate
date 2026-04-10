@@ -22,11 +22,8 @@ export function PaymentSelectionDialog() {
   } = usePaymentDialogStore()
 
   const [loadingMethod, setLoadingMethod] = React.useState<PaymentMethod | null>(null)
-  
-  const generateBindPayToken = api.telegram.generateBindPayToken.useMutation()
-  const telegramStatus = api.telegram.getBindingStatus.useQuery(undefined, {
-    enabled: isOpen,
-  })
+
+  const checkoutMutation = api.order.checkout.useMutation()
 
   // Reset state when dialog closes
   React.useEffect(() => {
@@ -47,29 +44,22 @@ export function PaymentSelectionDialog() {
         return
       }
 
-      // Credit Card (via Telegram Stars): redirect to bot
-      if (method === 'telegram_stars') {
-        const botUsername = telegramStatus.data?.botUsername
-        if (!botUsername) {
-          toast.error('Telegram Bot is not configured')
-          setLoadingMethod(null)
-          return
-        }
-
-        if (telegramStatus.data?.isBound) {
-          // Already bound → go directly to buy
+      // Stripe checkout
+      if (method === 'stripe') {
+        try {
+          const result = await checkoutMutation.mutateAsync({
+            productId,
+            gateway: 'STRIPE',
+            successUrl: `${window.location.origin}/payment/success`,
+            cancelUrl: window.location.href,
+          })
           closePaymentDialog()
-          window.open(`https://t.me/${botUsername}?start=buy_${productId}`, '_blank')
-        } else {
-          // Not bound → generate bind-pay token (bind + buy in one step)
-          try {
-            const result = await generateBindPayToken.mutateAsync({ productId })
-            closePaymentDialog()
-            window.open(result.deepLink, '_blank')
-          } catch {
-            toast.error('Failed to generate payment link. Please try again.')
-            setLoadingMethod(null)
+          if (result.url) {
+            window.location.href = result.url
           }
+        } catch {
+          toast.error('Failed to start checkout. Please try again.')
+          setLoadingMethod(null)
         }
         return
       }
@@ -84,12 +74,12 @@ export function PaymentSelectionDialog() {
     <div className="grid gap-4 p-4 pb-8 sm:p-0 sm:pb-0">
       <PaymentOption
         icon={CreditCard}
-        title="Credit Card (via Telegram)"
-        description="Pay securely through Telegram"
+        title="Credit Card"
+        description="Pay securely with Stripe"
         badges={['Instant', 'Secure']}
-        onClick={() => handlePayment('telegram_stars')}
+        onClick={() => handlePayment('stripe')}
         loading={loadingMethod !== null}
-        selectedLoading={loadingMethod === 'telegram_stars'}
+        selectedLoading={loadingMethod === 'stripe'}
         recommended
       />
       
