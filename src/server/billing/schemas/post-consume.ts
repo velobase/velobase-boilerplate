@@ -5,7 +5,7 @@ export const PostConsumeInputSchema = z.object({
   accountType: z.enum(['UNDEFINED','QUOTA','CREDIT']).optional(),
   amount: z.number().positive(),
   businessId: z.string().min(1),
-  businessType: z.enum(['UNDEFINED','TASK','ORDER','MEMBERSHIP','SUBSCRIPTION','FREE_TRIAL','ADMIN_GRANT']).optional(),
+  businessType: z.enum(['UNDEFINED','TASK','ORDER','MEMBERSHIP','SUBSCRIPTION','FREE_TRIAL','ADMIN_GRANT','ADMIN_DEDUCT','TOKEN_USAGE']).optional(),
   referenceId: z.string().optional(),
   description: z.string().optional(),
 });

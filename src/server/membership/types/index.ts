@@ -56,10 +56,3 @@ export type SubscriptionStatusResult = {
     expiresAt: Date
   }
 }
-
-export type GrantDailyLoginCreditParams = {
-  userId: string
-  amount: number
-}
-
-

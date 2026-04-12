@@ -1,47 +1,45 @@
-import { db } from "@/server/db"
-import type { GetRecordsParams, GetRecordsOutput, RecordSummary } from '../types'
 import { TRPCError } from '@trpc/server'
-import type { Prisma } from '@prisma/client'
+import { getVelobase } from '../velobase'
+import { VelobaseNotFoundError } from '@velobaseai/billing'
+import type { GetRecordsParams, GetRecordsOutput, RecordSummary } from '../types'
 
 export async function getRecords(params: GetRecordsParams): Promise<GetRecordsOutput> {
   if (!params.userId) throw new TRPCError({ code: 'BAD_REQUEST', message: 'userId is required' })
 
   const limit = Math.min(Math.max(params.limit ?? 20, 1), 100)
-  const offset = Math.max(params.offset ?? 0, 0)
+  const vb = getVelobase()
 
-  const where: Prisma.BillingRecordWhereInput = {
-    userId: params.userId,
-    ...(params.startTime !== undefined || params.endTime !== undefined
-      ? {
-          createdAt: {
-            ...(params.startTime !== undefined ? { gte: params.startTime } : {}),
-            ...(params.endTime !== undefined ? { lte: params.endTime } : {}),
-          },
-        }
-      : {}),
-    ...(params.accountType !== undefined ? { accountType: params.accountType } : {}),
+  try {
+    const res = await vb.customers.ledger(params.userId, {
+      limit,
+      cursor: params.cursor ?? undefined,
+      operationType: params.operationType ?? undefined,
+      transactionId: params.transactionId ?? undefined,
+    })
+
+    const summaries: RecordSummary[] = res.items.map((entry) => ({
+      id: entry.id,
+      operationType: entry.operationType as RecordSummary['operationType'],
+      amount: entry.amount,
+      creditType: entry.creditType,
+      transactionId: entry.transactionId ?? null,
+      businessType: (entry.businessType as RecordSummary['businessType']) ?? null,
+      description: entry.description ?? null,
+      accountId: entry.accountId,
+      status: entry.status as RecordSummary['status'],
+      createdAt: new Date(entry.createdAt),
+    }))
+
+    return {
+      records: summaries,
+      total: res.totalCount,
+      hasMore: res.hasMore,
+      nextCursor: res.nextCursor ?? undefined,
+    }
+  } catch (err) {
+    if (err instanceof VelobaseNotFoundError) {
+      return { records: [], total: 0, hasMore: false }
+    }
+    throw err
   }
-
-  const [total, records] = await db.$transaction([
-    db.billingRecord.count({ where }),
-    db.billingRecord.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit, skip: offset }),
-  ])
-
-  const summaries: RecordSummary[] = records.map((r) => ({
-    id: r.id,
-    accountType: r.accountType as RecordSummary['accountType'],
-    subAccountType: r.subAccountType as RecordSummary['subAccountType'],
-    operationType: r.operationType as RecordSummary['operationType'],
-    amount: r.amount,
-    businessId: r.businessId ?? null,
-    businessType: (r.businessType as RecordSummary['businessType']) ?? null,
-    referenceId: r.referenceId ?? null,
-    description: r.description ?? null,
-    status: r.status as RecordSummary['status'],
-    createdAt: r.createdAt,
-  }))
-
-  return { records: summaries, total, hasMore: offset + records.length < total }
 }
-
-

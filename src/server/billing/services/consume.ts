@@ -12,10 +12,12 @@ export async function consume(params: ConsumeParams): Promise<ConsumeOutput> {
     actualAmount: params.actualAmount,
   })
 
+  const details = result.consumeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
+
   return {
     totalAmount: result.consumedAmount,
-    returnedAmount: result.returnedAmount > 0 ? result.returnedAmount : undefined,
-    consumeDetails: result.consumeDetails.map((d: { accountId: string; creditType?: string; amount: number }) => ({
+    returnedAmount: (result.returnedAmount ?? 0) > 0 ? result.returnedAmount : undefined,
+    consumeDetails: details.map((d) => ({
       freezeId: params.businessId,
       accountId: d.accountId,
       subAccountType: (d.creditType ?? 'DEFAULT') as ConsumeOutput['consumeDetails'][number]['subAccountType'],

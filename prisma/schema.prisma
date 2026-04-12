@@ -809,83 +809,9 @@ model PaymentTransaction {
   @@map("payment_transactions")
 }
 
-model BillingAccount {
-  id             String                @id @default(uuid())
-  userId         String                @map("user_id")
-  accountType    BillingAccountType    @default(UNDEFINED) @map("account_type")
-  subAccountType BillingSubAccountType @default(UNDEFINED) @map("sub_account_type")
-  outerBizId     String                @unique @map("outer_biz_id")
-  referenceId    String?               @map("reference_id")
-  status         BillingAccountStatus  @default(UNDEFINED)
-  totalAmount    Int                   @default(0) @map("total_amount")
-  usedAmount     Int                   @default(0) @map("used_amount")
-  frozenAmount   Int                   @default(0) @map("frozen_amount")
-  startsAt       DateTime?             @map("starts_at")
-  expiresAt      DateTime?             @map("expires_at")
-  createdAt      DateTime              @default(now()) @map("created_at")
-  updatedAt      DateTime              @updatedAt @map("updated_at")
-  deletedAt      DateTime?             @map("deleted_at")
-  freezeRecords  BillingFreezeRecord[]
-  records        BillingRecord[]
-
-  @@index([userId])
-  @@index([userId, accountType, subAccountType])
-  @@index([status])
-  @@map("billing_billing_accounts")
-}
-
-model BillingRecord {
-  id               String                @id @default(uuid())
-  billingAccountId String                @map("billing_account_id")
-  userId           String                @map("user_id")
-  accountType      BillingAccountType    @default(UNDEFINED) @map("account_type")
-  subAccountType   BillingSubAccountType @default(UNDEFINED) @map("sub_account_type")
-  operationType    BillingOperationType  @default(UNDEFINED) @map("operation_type")
-  amount           Int                   @default(0)
-  businessId       String?               @map("business_id")
-  businessType     BillingBusinessType   @default(UNDEFINED) @map("business_type")
-  referenceId      String?               @map("reference_id")
-  description      String?               @map("description")
-  status           BillingRecordStatus   @default(UNDEFINED)
-  createdAt        DateTime              @default(now()) @map("created_at")
-  updatedAt        DateTime              @updatedAt @map("updated_at")
-  deletedAt        DateTime?             @map("deleted_at")
-  account          BillingAccount        @relation(fields: [billingAccountId], references: [id])
-
-  @@index([billingAccountId])
-  @@index([userId])
-  @@index([operationType])
-  @@index([businessId, operationType])
-  @@index([businessType])
-  @@index([referenceId])
-  @@index([status])
-  @@map("billing_billing_records")
-}
-
-model BillingFreezeRecord {
-  id               String                @id @default(uuid())
-  billingAccountId String                @map("billing_account_id")
-  userId           String                @map("user_id")
-  accountType      BillingAccountType    @default(UNDEFINED) @map("account_type")
-  subAccountType   BillingSubAccountType @default(UNDEFINED) @map("sub_account_type")
-  businessId       String                @map("business_id")
-  businessType     BillingBusinessType   @default(UNDEFINED) @map("business_type")
-  frozenAmount     Int                   @default(0) @map("frozen_amount")
-  status           BillingFreezeStatus   @default(UNDEFINED)
-  createdAt        DateTime              @default(now()) @map("created_at")
-  updatedAt        DateTime              @updatedAt @map("updated_at")
-  deletedAt        DateTime?             @map("deleted_at")
-  account          BillingAccount        @relation(fields: [billingAccountId], references: [id])
-
-  @@unique([billingAccountId, businessId])
-  @@index([userId])
-  @@index([accountType])
-  @@index([subAccountType])
-  @@index([businessId])
-  @@index([businessType])
-  @@index([status])
-  @@map("billing_billing_freeze_records")
-}
+// Billing accounts/records/freeze_records have been migrated to Velobase (external billing service).
+// The billing_billing_accounts, billing_billing_records, and billing_billing_freeze_records tables
+// can be dropped after verifying all data has been migrated. See docs/integrations/billing/.
 
 model UserSubscription {
   id                    String                  @id @default(uuid())
@@ -1134,65 +1060,9 @@ enum ProductStatus {
   INACTIVE
 }
 
-enum BillingAccountType {
-  UNDEFINED
-  QUOTA
-  CREDIT
-}
-
-enum BillingSubAccountType {
-  UNDEFINED
-  DEFAULT
-  FREE_TRIAL
-  MEMBERSHIP
-  ORDER
-  DAILY_LOGIN
-  FIRST_LOGIN
-  PROMO_CODE
-}
-
-enum BillingAccountStatus {
-  UNDEFINED
-  PENDING
-  ACTIVE
-  EXPIRED
-  DEPLETED
-  INVALID
-}
-
-enum BillingOperationType {
-  UNDEFINED
-  FREEZE
-  CONSUME
-  UNFREEZE
-  GRANT
-  EXPIRE
-}
-
-enum BillingBusinessType {
-  UNDEFINED
-  TASK
-  ORDER
-  MEMBERSHIP
-  SUBSCRIPTION
-  FREE_TRIAL
-  ADMIN_GRANT
-  TOKEN_USAGE
-  ADMIN_DEDUCT
-}
-
-enum BillingRecordStatus {
-  UNDEFINED
-  COMPLETED
-  FAILED
-}
-
-enum BillingFreezeStatus {
-  UNDEFINED
-  FROZEN
-  CONSUMED
-  UNFROZEN
-}
+// Billing enums (BillingAccountType, BillingSubAccountType, BillingAccountStatus,
+// BillingOperationType, BillingBusinessType, BillingRecordStatus, BillingFreezeStatus)
+// have been migrated to Velobase. Local type definitions are in src/server/billing/types/.
 
 enum UserSubscriptionStatus {
   UNDEFINED

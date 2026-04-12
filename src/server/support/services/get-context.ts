@@ -4,6 +4,7 @@
 
 import { db } from "@/server/db";
 import { logger } from "@/lib/logger";
+import { getBalance } from "@/server/billing/services/get-balance";
 import type { UserContext } from "../types";
 
 /**
@@ -30,20 +31,10 @@ export async function getUserContext(userId: string): Promise<UserContext | null
     orderBy: { createdAt: "desc" },
   });
 
-  // 获取 credits 余额
-  const creditAccounts = await db.billingAccount.findMany({
-    where: {
-      userId,
-      accountType: "CREDIT",
-      status: "ACTIVE",
-    },
-  });
-
-  const totalCredits = creditAccounts.reduce(
-    (acc, a) => acc + (a.totalAmount - a.usedAmount - a.frozenAmount),
-    0
-  );
-  const usedCredits = creditAccounts.reduce((acc, a) => acc + a.usedAmount, 0);
+  // 获取 credits 余额（via Velobase）
+  const balanceResult = await getBalance({ userId, accountType: "CREDIT" });
+  const totalCredits = balanceResult.totalSummary.available;
+  const usedCredits = balanceResult.totalSummary.used;
 
   // 获取最近订单
   const recentOrders = await db.order.findMany({
@@ -72,7 +63,6 @@ export async function getUserContext(userId: string): Promise<UserContext | null
       ? {
           totalPaidCents: user.stats.totalPaidCents,
           ordersCount: user.stats.ordersCount,
-          generatedVideosCount: user.stats.generatedVideosCount,
         }
       : undefined,
   };
@@ -158,7 +148,6 @@ export function formatContextForPrompt(context: UserContext | null): string {
     lines.push(`\n**Stats:**`);
     lines.push(`- Total paid: $${(context.stats.totalPaidCents / 100).toFixed(2)}`);
     lines.push(`- Orders: ${context.stats.ordersCount}`);
-    lines.push(`- Videos generated: ${context.stats.generatedVideosCount}`);
   }
 
   if (context.recentOrders && context.recentOrders.length > 0) {

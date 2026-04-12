@@ -4,7 +4,7 @@
  * Tests basic storage operations (upload, download, signed URL, public URL, delete)
  * against the currently configured STORAGE_PROVIDER.
  *
- * Usage: npx tsx scripts/tests/storage/test-storage.ts
+ * Usage: npx tsx scripts/tests/integrations/storage/test-storage.ts
  */
 
 import * as dotenv from "dotenv";

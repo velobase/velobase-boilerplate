@@ -1,8 +1,9 @@
 /**
- * 查询 Credits 余额工具
+ * 查询 Credits 余额工具（via Velobase）
  */
 
-import { db } from "@/server/db";
+import { getVelobase } from "@/server/billing/velobase";
+import { VelobaseNotFoundError } from "@velobaseai/billing";
 
 export interface CreditsInfo {
   available: number;
@@ -16,44 +17,28 @@ export interface CreditsInfo {
   }>;
 }
 
-/**
- * 查询用户 credits 余额
- */
 export async function queryCredits(userId: string): Promise<CreditsInfo> {
-  const accounts = await db.billingAccount.findMany({
-    where: {
-      userId,
-      accountType: "CREDIT",
-      status: "ACTIVE",
-    },
-    orderBy: { expiresAt: "asc" },
-  });
+  const vb = getVelobase();
 
-  let available = 0;
-  let used = 0;
-  let frozen = 0;
-  let total = 0;
-
-  const accountDetails = accounts.map((a) => {
-    const accountAvailable = a.totalAmount - a.usedAmount - a.frozenAmount;
-    available += accountAvailable;
-    used += a.usedAmount;
-    frozen += a.frozenAmount;
-    total += a.totalAmount;
+  try {
+    const customer = await vb.customers.get(userId);
 
     return {
-      type: a.subAccountType,
-      available: accountAvailable,
-      expiresAt: a.expiresAt ?? undefined,
+      available: customer.balance.available,
+      used: customer.balance.used,
+      frozen: customer.balance.frozen,
+      total: customer.balance.total,
+      accounts: customer.accounts.map((a) => ({
+        type: a.creditType,
+        available: a.available,
+        expiresAt: a.expiresAt ? new Date(a.expiresAt) : undefined,
+      })),
     };
-  });
-
-  return {
-    available,
-    used,
-    frozen,
-    total,
-    accounts: accountDetails,
-  };
+  } catch (err) {
+    if (err instanceof VelobaseNotFoundError) {
+      return { available: 0, used: 0, frozen: 0, total: 0, accounts: [] };
+    }
+    throw err;
+  }
 }
 

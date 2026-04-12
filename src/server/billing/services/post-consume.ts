@@ -31,10 +31,15 @@ export async function postConsume(params: PostConsumeParams): Promise<PostConsum
 
   const vb = getVelobase()
 
-  const validBusinessTypes = ['TASK', 'ORDER', 'MEMBERSHIP', 'SUBSCRIPTION', 'FREE_TRIAL', 'ADMIN_GRANT'] as const
-  const bt = params.businessType && validBusinessTypes.includes(params.businessType as typeof validBusinessTypes[number])
-    ? (params.businessType as typeof validBusinessTypes[number])
-    : undefined
+  // Velobase SDK 支持的 businessType 列表；ADMIN_DEDUCT 等不支持的类型会映射为 ADMIN_GRANT
+  const sdkBusinessTypes = ['TASK', 'ORDER', 'MEMBERSHIP', 'SUBSCRIPTION', 'FREE_TRIAL', 'ADMIN_GRANT'] as const
+  const businessTypeMap: Record<string, typeof sdkBusinessTypes[number]> = { ADMIN_DEDUCT: 'ADMIN_GRANT' }
+  const raw = params.businessType
+  const mapped = raw ? businessTypeMap[raw] : undefined
+  const bt = mapped
+    ?? (raw && sdkBusinessTypes.includes(raw as typeof sdkBusinessTypes[number])
+      ? (raw as typeof sdkBusinessTypes[number])
+      : undefined)
 
   const result = await vb.billing.deduct({
     customerId: params.userId,
@@ -44,9 +49,11 @@ export async function postConsume(params: PostConsumeParams): Promise<PostConsum
     description: params.description ?? undefined,
   })
 
+  const details = result.deductDetails as Array<{ accountId: string; creditType?: string; amount: number }>
+
   return {
     totalAmount: result.deductedAmount,
-    consumeDetails: result.deductDetails.map((d: { accountId: string; creditType?: string; amount: number }) => ({
+    consumeDetails: details.map((d) => ({
       accountId: d.accountId,
       subAccountType: (d.creditType ?? 'DEFAULT') as BillingSubAccountType,
       amount: d.amount,

@@ -16,6 +16,7 @@ export async function getBalance(params: GetBalanceParams): Promise<GetBalanceOu
       .map((a: { accountType: string; creditType: string; total: number; used: number; frozen: number; available: number; startsAt: string | null; expiresAt: string | null }) => ({
         accountType: (a.accountType ?? 'CREDIT') as AccountSummary['accountType'],
         subAccountType: (a.creditType ?? 'DEFAULT') as AccountSummary['subAccountType'],
+        creditType: a.creditType ?? 'DEFAULT',
         total: a.total,
         used: a.used,
         frozen: a.frozen,

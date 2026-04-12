@@ -47,11 +47,6 @@ export type GrantParams = {
   subAccountType: BillingSubAccountType
   amount: number
   outerBizId: string
-  /**
-   * BillingAccount status to create. Default: 'ACTIVE'
-   * Use 'PENDING' for "locked / under review" credits.
-   */
-  status?: BillingAccountStatus
   businessType?: BillingBusinessType
   referenceId?: string
   description?: string
@@ -64,6 +59,7 @@ export type GrantOutput = {
   totalAmount: number
   addedAmount: number
   recordId: string
+  isIdempotentReplay: boolean
 }
 
 export type FreezeParams = {
@@ -134,6 +130,7 @@ export type GetBalanceParams = {
 export type AccountSummary = {
   accountType: BillingAccountType
   subAccountType: BillingSubAccountType
+  creditType?: string
   total: number
   used: number
   frozen: number
@@ -155,22 +152,20 @@ export type GetBalanceOutput = {
 export type GetRecordsParams = {
   userId: string
   limit?: number
-  offset?: number
-  startTime?: Date
-  endTime?: Date
-  accountType?: BillingAccountType
+  cursor?: string
+  operationType?: string
+  transactionId?: string
 }
 
 export type RecordSummary = {
   id: string
-  accountType: BillingAccountType
-  subAccountType: BillingSubAccountType
   operationType: BillingOperationType
   amount: number
-  businessId?: string | null
+  creditType: string
+  transactionId?: string | null
   businessType?: BillingBusinessType | null
-  referenceId?: string | null
   description?: string | null
+  accountId: string
   status: BillingRecordStatus
   createdAt: Date
 }
@@ -179,6 +174,7 @@ export type GetRecordsOutput = {
   records: RecordSummary[]
   total: number
   hasMore: boolean
+  nextCursor?: string
 }
 
 

@@ -260,10 +260,6 @@ export const deleteUser = adminProcedure
   .input(z.object({ userId: z.string() }))
   .mutation(async ({ ctx, input }) => {
     await ctx.db.$transaction(async (tx) => {
-      await tx.billingFreezeRecord.deleteMany({ where: { account: { userId: input.userId } } });
-      await tx.billingRecord.deleteMany({ where: { account: { userId: input.userId } } });
-      await tx.billingAccount.deleteMany({ where: { userId: input.userId } });
-
       await tx.userSubscriptionCycle.deleteMany({ where: { subscription: { userId: input.userId } } });
       await tx.userSubscription.deleteMany({ where: { userId: input.userId } });
 

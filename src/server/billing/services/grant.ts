@@ -24,5 +24,6 @@ export async function grant(params: GrantParams): Promise<GrantOutput> {
     totalAmount: result.totalAmount,
     addedAmount: result.addedAmount,
     recordId: result.recordId,
+    isIdempotentReplay: result.isIdempotentReplay,
   }
 }

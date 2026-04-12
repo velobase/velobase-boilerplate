@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { adminProcedure } from "@/server/api/trpc";
 import { getBalance } from "@/server/billing/services/get-balance";
+import { getRecords } from "@/server/billing/services/get-records";
 import { grant } from "@/server/billing/services/grant";
 import { postConsume } from "@/server/billing/services/post-consume";
-import type { Prisma, BillingOperationType } from "@prisma/client";
 
 export const getUserCredits = adminProcedure
   .input(z.object({ userId: z.string() }))
@@ -55,54 +55,23 @@ export const deductCredits = adminProcedure
 export const listBillingRecords = adminProcedure
   .input(
     z.object({
-      userId: z.string().optional(),
+      userId: z.string(),
       limit: z.number().min(1).max(100).default(50),
       cursor: z.string().nullish(),
-      operationTypes: z.array(z.string()).optional(),
       operationType: z.string().optional(),
     })
   )
-  .query(async ({ ctx, input }) => {
-    const limit = input.limit;
-    const { cursor, userId, operationTypes, operationType } = input;
-
-    const where: Prisma.BillingRecordWhereInput = {};
-
-    if (userId) {
-      where.userId = userId;
-    }
-
-    if (operationTypes && operationTypes.length > 0) {
-      where.operationType = {
-        in: operationTypes as BillingOperationType[],
-      };
-    } else if (operationType) {
-      where.operationType = operationType as BillingOperationType;
-    }
-
-    const items = await ctx.db.billingRecord.findMany({
-      take: limit + 1,
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { createdAt: "desc" },
-      where,
-      include: {
-        account: {
-          select: {
-            userId: true,
-          },
-        },
-      },
+  .query(async ({ input }) => {
+    const result = await getRecords({
+      userId: input.userId,
+      limit: input.limit,
+      cursor: input.cursor ?? undefined,
+      operationType: input.operationType ?? undefined,
     });
 
-    let nextCursor: typeof cursor | undefined = undefined;
-    if (items.length > limit) {
-      const nextItem = items.pop();
-      nextCursor = nextItem!.id;
-    }
-
     return {
-      items,
-      nextCursor,
+      items: result.records,
+      nextCursor: result.nextCursor,
     };
   });
 

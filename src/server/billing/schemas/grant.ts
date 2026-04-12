@@ -23,5 +23,6 @@ export const GrantOutputSchema = z.object({
   totalAmount: z.number(),
   addedAmount: z.number(),
   recordId: z.string(),
+  isIdempotentReplay: z.boolean(),
 });
 

@@ -17,9 +17,11 @@ export async function freeze(params: FreezeParams): Promise<FreezeOutput> {
     description: params.description ?? undefined,
   })
 
+  const details = result.freezeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
+
   return {
     totalAmount: result.frozenAmount,
-    freezeDetails: result.freezeDetails.map((d: { accountId: string; creditType?: string; amount: number }) => ({
+    freezeDetails: details.map((d) => ({
       freezeId: params.businessId,
       accountId: d.accountId,
       accountType: params.accountType,

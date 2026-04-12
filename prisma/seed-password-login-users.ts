@@ -41,23 +41,7 @@ export async function seedPasswordLoginTestUsers() {
         },
       });
 
-      // 发放测试积分（如果没有）
-      const existingAccount = await prisma.billingAccount.findFirst({
-        where: { userId: testUser.id, accountType: 'CREDIT' },
-      });
-
-      if (!existingAccount) {
-        await prisma.billingAccount.create({
-          data: {
-            userId: testUser.id,
-            accountType: 'CREDIT',
-            subAccountType: 'FIRST_LOGIN',
-            totalAmount: TEST_CREDITS,
-            outerBizId: `test_grant_${testUser.id}`,
-          },
-        });
-      }
-
+      // 测试积分通过 Velobase 发放，seed 不再写入本地 billing 表
       console.log(`   ✅ ${testEmail} (password: ${defaultPassword})`);
     } catch (error) {
       console.warn(`   ⚠️ Failed to seed ${testEmail}:`, error);

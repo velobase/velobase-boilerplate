@@ -174,8 +174,8 @@ importers:
         specifier: ^0.32.0
         version: 0.32.0
       '@velobaseai/billing':
-        specifier: ^0.1.4
-        version: 0.1.4
+        specifier: ^0.1.5
+        version: 0.1.5
       ai:
         specifier: ^5.0.68
         version: 5.0.108(zod@3.25.76)
@@ -2915,8 +2915,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@velobaseai/billing@0.1.4':
-    resolution: {integrity: sha512-HzWerTnwP8ykG9yTQmDTRxHT6GjG3PsTmQoO6nB0GkvNhau1NZbMXewnO+XOJ9+pWavkFNtljgLOa2IFZxBPXA==}
+  '@velobaseai/billing@0.1.5':
+    resolution: {integrity: sha512-iiOMVtk+A9+wMRh72VnHA9gapz1T3iDQ4OZXmoSSDph5vsrNJMBlOLSX/Zj4ztB/M6RcqVeqbHPnb2VEzPfqBA==}
     engines: {node: '>=18'}
 
   '@vercel/oidc@3.0.5':
@@ -9039,7 +9039,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@velobaseai/billing@0.1.4': {}
+  '@velobaseai/billing@0.1.5': {}
 
   '@vercel/oidc@3.0.5': {}
 

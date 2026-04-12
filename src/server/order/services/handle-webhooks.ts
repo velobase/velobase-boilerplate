@@ -832,22 +832,7 @@ export async function handleStripeSubscriptionRenewal(
     return result.getData();
   }
 
-  // 幂等性：如果基于 invoice(=transaction) 的续费积分已经发放，则认为该续费已处理过，直接返回
   const outerBizId = `subscription_renewal_${subscription.id}_${txnId}`;
-  const existingAccount = await db.billingAccount.findUnique({
-    where: { outerBizId },
-  });
-  if (existingAccount) {
-    logger.info(
-      {
-        subscriptionId: subscription.id,
-        gatewaySubscriptionId: gatewaySubId,
-        transactionId: txnId,
-      },
-      "Stripe subscription renewal already processed (billing account exists)"
-    );
-    return result.getData();
-  }
 
   const rawInterval = (plan.interval ?? "").toString().toLowerCase();
   const interval =
@@ -898,28 +883,35 @@ export async function handleStripeSubscriptionRenewal(
   // 续费属于“发放权益/积分”的履约逻辑：如果 DB/发放失败，希望 Stripe 重放
   let newCycleSequenceNumber: number | undefined;
   try {
-    // 多周期模型：
-    // - 如果已有 ACTIVE 周期：将其标记为 CLOSED，再为本期创建一个新的 REGULAR 周期
-    // - 如果没有 ACTIVE 周期：直接创建首个 REGULAR 周期
-    if (activeCycle) {
-      await db.userSubscriptionCycle.update({
-        where: { id: activeCycle.id },
-        data: {
-          status: "CLOSED",
-        },
-      });
-    }
-
+    // 幂等：先尝试创建周期，uniqueKey 已存在则说明本次续费已处理过
+    const renewalUniqueKey = `sub_renewal_${subscription.id}_${txnId}`;
     const newCycle = await createSubscriptionCycle({
       subscriptionId: subscription.id,
-      // 续费周期目前没有对应的 Payment 记录
       paymentId: undefined,
-      uniqueKey: `sub_renewal_${subscription.id}_${txnId}`,
+      uniqueKey: renewalUniqueKey,
       type: "REGULAR",
       startsAt: periodStart,
       expiresAt: periodEnd,
     });
+
+    const isReplay = newCycle.createdAt.getTime() < Date.now() - 5000;
+    if (isReplay) {
+      logger.info(
+        { subscriptionId: subscription.id, txnId, cycleId: newCycle.id },
+        "Subscription renewal already processed (cycle exists), skipping"
+      );
+      return result.getData();
+    }
+
     newCycleSequenceNumber = newCycle.sequenceNumber;
+
+    // 新周期创建成功后，关闭旧的 ACTIVE 周期
+    if (activeCycle && activeCycle.id !== newCycle.id) {
+      await db.userSubscriptionCycle.update({
+        where: { id: activeCycle.id },
+        data: { status: "CLOSED" },
+      });
+    }
 
     // 续费成功时，恢复订阅为 ACTIVE 并清除取消标记
     await db.userSubscription.update({
@@ -1178,12 +1170,7 @@ function __dead_code_placeholder(result: PaymentWebhookResult) {
   const plan = snapshot.productSubscription?.plan;
   if (!plan) return result.getData();
 
-  // 幂等：invoiceId 作为外部业务键
   const outerBizId = `subscription_renewal_${subscription.id}_${txnId}`;
-  const existingAccount = await db.billingAccount.findUnique({
-    where: { outerBizId },
-  });
-  if (existingAccount) return result.getData();
 
   const rawInterval = (plan.interval ?? "").toString().toLowerCase();
   const interval =
@@ -1217,22 +1204,29 @@ function __dead_code_placeholder(result: PaymentWebhookResult) {
 
   let newCycleSequenceNumber: number | undefined;
   try {
-    if (activeCycle) {
+    const renewalUniqueKey = `sub_renewal_airwallex_${subscription.id}_${txnId}`;
+    const newCycle = await createSubscriptionCycle({
+      subscriptionId: subscription.id,
+      paymentId: undefined,
+      uniqueKey: renewalUniqueKey,
+      type: "REGULAR",
+      startsAt: periodStart,
+      expiresAt: periodEnd,
+    });
+
+    const isReplay = newCycle.createdAt.getTime() < Date.now() - 5000;
+    if (isReplay) {
+      return result.getData();
+    }
+
+    newCycleSequenceNumber = newCycle.sequenceNumber;
+
+    if (activeCycle && activeCycle.id !== newCycle.id) {
       await db.userSubscriptionCycle.update({
         where: { id: activeCycle.id },
         data: { status: "CLOSED" },
       });
     }
-
-    const newCycle = await createSubscriptionCycle({
-      subscriptionId: subscription.id,
-      paymentId: undefined,
-      uniqueKey: `sub_renewal_airwallex_${subscription.id}_${txnId}`,
-      type: "REGULAR",
-      startsAt: periodStart,
-      expiresAt: periodEnd,
-    });
-    newCycleSequenceNumber = newCycle.sequenceNumber;
 
     await db.userSubscription.update({
       where: { id: subscription.id },

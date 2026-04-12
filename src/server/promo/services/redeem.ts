@@ -1,7 +1,7 @@
 import { db } from "@/server/db"
 import { grant } from '@/server/billing/services/grant'
 import { processFulfillmentByPayment } from '@/server/fulfillment/manager'
-import type { BillingAccountType, BillingSubAccountType, BillingBusinessType } from '@prisma/client'
+import type { BillingAccountType, BillingSubAccountType, BillingBusinessType } from '@/server/billing/types'
 import { Prisma } from '@prisma/client'
 import type { RedeemCodeParams, RedeemCodeResult } from '../types'
 import { validateCode } from './validate'
@@ -70,19 +70,16 @@ export async function redeemCode(params: RedeemCodeParams): Promise<RedeemCodeRe
         }
 
         const outerBizId = `promo_${promo.id}_${userId}`
-        const grantRes = await grant(
-          {
-            userId,
-            accountType: 'CREDIT' as BillingAccountType,
-            subAccountType: 'PROMO_CODE' as BillingSubAccountType,
-            amount: promo.creditsAmount,
-            outerBizId,
-            businessType: 'ADMIN_GRANT' as BillingBusinessType,
-            referenceId: promo.id,
-            description: `Promo Code - ${promo.code}`,
-          },
-          tx
-        )
+        const grantRes = await grant({
+          userId,
+          accountType: 'CREDIT' as BillingAccountType,
+          subAccountType: 'PROMO_CODE' as BillingSubAccountType,
+          amount: promo.creditsAmount,
+          outerBizId,
+          businessType: 'ADMIN_GRANT' as BillingBusinessType,
+          referenceId: promo.id,
+          description: `Promo Code - ${promo.code}`,
+        })
 
         const redemption = await tx.promoCodeRedemption.create({
           data: {

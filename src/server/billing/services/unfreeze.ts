@@ -11,9 +11,11 @@ export async function unfreeze(params: UnfreezeParams): Promise<UnfreezeOutput> 
     transactionId: params.businessId,
   })
 
+  const details = result.unfreezeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
+
   return {
     totalAmount: result.unfrozenAmount,
-    unfreezeDetails: result.unfreezeDetails.map((d: { accountId: string; creditType?: string; amount: number }) => ({
+    unfreezeDetails: details.map((d) => ({
       freezeId: params.businessId,
       accountId: d.accountId,
       subAccountType: (d.creditType ?? 'DEFAULT') as UnfreezeOutput['unfreezeDetails'][number]['subAccountType'],

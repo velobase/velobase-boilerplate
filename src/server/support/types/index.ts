@@ -108,7 +108,6 @@ export interface UserContext {
   stats?: {
     totalPaidCents: number;
     ordersCount: number;
-    generatedVideosCount: number;
   };
 }
 

@@ -12,11 +12,10 @@ import { sendEmail, MagicLinkEmailTemplate, renderMagicLinkHtml } from "@/server
 import { checkAuthRateLimit } from "@/server/ratelimit";
 import { getServerPostHog } from "@/analytics/server";
 import { AUTH_EVENTS } from "@/analytics/events/auth";
-import { isDisposableEmail, getEmailDomain, isFamousEmailDomain } from "./disposable-domains";
-import { normalizeEmail, isGmailAddress } from "./normalize-email";
+import { isFamousEmailDomain } from "./disposable-domains";
+import { normalizeEmail } from "./normalize-email";
 import { CustomPrismaAdapter } from "./prisma-adapter";
-import { verifyTurnstileToken } from "./turnstile";
-import { checkAndBlockEmailAbuse, checkEmailAbuse } from "./email-abuse";
+import { checkSignupAbuse, enforceSignupAbuse } from "@/server/features/anti-abuse";
 import { verifyPassword } from "./password";
 import { isPasswordLoginAllowed } from "./password-login-allowlist";
 import { SIGNUP_DISABLED } from "@/config/decommission";
@@ -50,82 +49,6 @@ function classifyFirstTouch(params: {
   // No referrer: direct or stripped
   if (utmSource || utmMedium) return { refType: "unknown", channel: "unknown" };
   return { refType: "direct", channel: "direct" };
-}
-
-// 简单邮箱风控：
-// - 只在 Email Provider（魔法链接）阶段生效
-// - 只针对非 Google 登录（GoogleProvider 不走这里）
-async function checkEmailSimilarityRisk(rawEmail: string, remoteIp: string | null): Promise<void> {
-  const email = rawEmail.toLowerCase().trim();
-  if (!email.includes("@")) return;
-
-  const [localPart, domain] = email.split("@");
-  if (!localPart || !domain) return;
-
-  // ==============================================================================
-  // 规则 1: 针对 Gmail/Googlemail 的 Dot Trick 和 Alias 攻击
-  // 灰产喜欢用 p.e.a.c.h... 或 user+123@gmail.com 绕过检测
-  // 真实 Gmail 用户通常直接用 Google Login，或者很少在 Magic Link 流程用复杂的带点/带加号邮箱
-  // ==============================================================================
-  if (isGmailAddress(email)) {
-    // 检查是否有 "+" (别名)
-    if (localPart.includes("+")) {
-      throw new Error("GMAIL_ALIAS_DETECTED:Please sign in with Google directly or use your primary email address.");
-    }
-    
-    // 检查是否有 "." (Dot Trick) - 允许少量点(比如名.姓)，但大量点(>1)通常是脚本
-    // 你的案例中：p.eac.hvit.a.l (5个点), anni.eleo... (6个点)
-    // 策略：如果是 Magic Link 登录，严格限制 Gmail 的点数量。
-    const dotCount = (localPart.match(/\./g) || []).length;
-    if (dotCount > 1) {
-       logger.warn({ email, dotCount }, "Gmail dot trick blocked");
-       throw new Error("SUSPICIOUS_EMAIL:Please sign in with Google directly for this email address.");
-    }
-  }
-
-  // ==============================================================================
-  // 规则 2: 长度与复杂度检测
-  // 案例: anni.eleo.nh.ar.t9.86.7 (长度23, 包含大量点和数字)
-  // ==============================================================================
-  if (localPart.length > 30) {
-     logger.warn({ email, length: localPart.length }, "Email too long blocked");
-     throw new Error("SUSPICIOUS_EMAIL:Email address is unusually long. Please use a standard email.");
-  }
-
-  // ==============================================================================
-  // 规则 3: 检查被封禁用户
-  // ==============================================================================
-  const existingUser = await db.user.findUnique({
-    where: { email },
-    select: { id: true, isBlocked: true, blockedReason: true },
-  });
-
-  if (existingUser?.isBlocked) {
-    if (existingUser.blockedReason === "USER_REQUESTED") {
-      throw new Error("ACCOUNT_DELETED:Your account has been deleted.");
-    }
-    throw new Error("BLOCKED_USER:Your account has been suspended.");
-  }
-
-  // ==============================================================================
-  // 规则 4: Cloudflare Turnstile 验证
-  // - 依赖前端写入 cookie: cf_turnstile_token
-  // - 只在配置了 TURNSTILE_SECRET_KEY 时启用
-  // ==============================================================================
-  if (env.TURNSTILE_SECRET_KEY) {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("cf_turnstile_token")?.value;
-
-    if (!token) {
-      throw new Error("TURNSTILE_REQUIRED:Please complete the verification challenge.");
-    }
-
-    const verifyResult = await verifyTurnstileToken(token, remoteIp);
-
-    if (!verifyResult.success) {
-      throw new Error("TURNSTILE_FAILED:Verification failed, please try again.");
-    }
-  }
 }
 
 async function ensureSignupEnabledOrExistingUser(email: string): Promise<void> {
@@ -296,35 +219,12 @@ export const authConfig = {
           );
         }
 
-        // Check disposable email
-        if (isDisposableEmail(email)) {
-          const domain = getEmailDomain(email);
-          logger.warn(
-            { email: email.substring(0, 3) + "***", domain },
-            "Disposable email blocked"
-          );
-
-          // Track blocked attempt
-          const posthog = getServerPostHog();
-          if (posthog) {
-            posthog.capture({
-              distinctId: email,
-              event: "auth_disposable_email_blocked",
-              properties: { domain },
-            });
-            void posthog.shutdown();
-          }
-
-          throw new Error(
-            "DISPOSABLE_EMAIL:This email domain is not supported. Please use a permanent email address."
-          );
-        }
-
         // Signup is disabled: only allow existing users to request magic link
         await ensureSignupEnabledOrExistingUser(email);
 
-        // Email 风控（只针对邮箱登录）
-        await checkEmailSimilarityRisk(email, ip);
+        // 邮箱风控守卫（临时邮箱 / Gmail tricks / 封禁检查 / Turnstile）
+        const { guardEmail } = await import("@/server/features/anti-abuse");
+        await guardEmail(email, ip);
 
         try {
           await sendEmail({
@@ -477,8 +377,7 @@ export const authConfig = {
               data: { signupIp: remoteIp },
             });
 
-            // 用统一的 email-abuse 逻辑做决策，保证「是否上锁」与后续「是否作废」一致
-            emailAbuseDecision = await checkEmailAbuse({
+            emailAbuseDecision = await checkSignupAbuse({
               userId: user.id,
               email: user.email,
               signupIp: remoteIp,
@@ -534,64 +433,25 @@ export const authConfig = {
           }
 
           if (amount > 0) {
-            // 命中风控：拆成 100 可用 + (target-100) 待审核锁定(PENDING)
+            // 全额发放初始积分（Velobase 不支持 PENDING 状态，统一全额发放）
+            await grant({
+              userId: user.id,
+              accountType: "CREDIT",
+              subAccountType: "FIRST_LOGIN",
+              amount,
+              outerBizId: `initial_grant_${grantKey}`,
+              businessType: "ADMIN_GRANT",
+              description,
+            });
+
+            logger.info(
+              { userId: user.id, grantKey, amount, isFamousEmail, isEmailLogin, utmSource, isPrimaryDeviceAccount },
+              "Granted initial credits to new user",
+            );
+
+            // 命中风控：异步检测滥用，如确认滥用则通过 Velobase deduct 回收
             if (shouldLockPendingCredits && remoteIp) {
-              const activeAmount = Math.min(100, amount);
-              const pendingAmount = amount - activeAmount;
-
-              await grant({
-                userId: user.id,
-                accountType: "CREDIT",
-                subAccountType: "FIRST_LOGIN",
-                amount: activeAmount,
-                outerBizId: `initial_grant_${grantKey}`,
-                businessType: "ADMIN_GRANT",
-                description: pendingAmount > 0 ? "Welcome Gift: 100 Credits (Available)" : description,
-              });
-
-              if (pendingAmount > 0) {
-                await grant({
-                  userId: user.id,
-                  accountType: "CREDIT",
-                  subAccountType: "FIRST_LOGIN",
-                  amount: pendingAmount,
-                  outerBizId: `initial_grant_pending_${grantKey}`,
-                  businessType: "ADMIN_GRANT",
-                  description: `Welcome Gift: ${pendingAmount} Credits (Pending Review)`,
-                  status: "PENDING",
-                });
-
-                // 只在确实有待审核额度时触发 Grok 复核，避免浪费调用
-                void checkAndBlockEmailAbuse(user.id, user.email, remoteIp, emailAbuseDecision ?? undefined);
-              }
-
-              logger.info(
-                {
-                  userId: user.id,
-                  grantKey,
-                  targetAmount: amount,
-                  activeAmount,
-                  pendingAmount,
-                  remoteIp,
-                  emailAbuseReason: emailAbuseDecision?.reason,
-                },
-                "Granted initial credits with pending review lock",
-              );
-            } else {
-              // 正常：一次性发放
-              await grant({
-                userId: user.id,
-                accountType: "CREDIT",
-                subAccountType: "FIRST_LOGIN",
-                amount,
-                outerBizId: `initial_grant_${grantKey}`,
-                businessType: "ADMIN_GRANT",
-                description,
-              });
-              logger.info(
-                { userId: user.id, grantKey, amount, isFamousEmail, isEmailLogin, utmSource, isPrimaryDeviceAccount },
-                "Granted initial credits to new user",
-              );
+              void enforceSignupAbuse(user.id, user.email, remoteIp, emailAbuseDecision ?? undefined);
             }
           }
         } catch (error) {

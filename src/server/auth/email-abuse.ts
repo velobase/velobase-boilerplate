@@ -11,7 +11,6 @@
 import { db } from "@/server/db";
 import { createLogger } from "@/lib/logger";
 import { sendEmailAbuseNotification } from "@/lib/lark/notifications";
-import { normalizeEmail } from "@/server/auth/normalize-email";
 
 const logger = createLogger("auth:email-abuse");
 
@@ -187,7 +186,9 @@ export async function checkEmailAbuse(
 /**
  * 检查并处理滥用用户的积分
  *
- * 同 IP 有其他账号：作废待审核积分
+ * 如果检测到滥用，通过 Velobase deduct 回收已发放的初始积分。
+ * 此设计不再依赖本地 BillingAccount 的 PENDING→ACTIVE/INVALID 状态流转，
+ * 而是：先正常发放积分（grant），滥用检测异步扣回（deduct）。
  */
 export async function checkAndBlockEmailAbuse(
   userId: string,
@@ -197,44 +198,31 @@ export async function checkAndBlockEmailAbuse(
 ): Promise<boolean> {
   const result = precomputed ?? (await checkEmailAbuse({ userId, email, signupIp }));
 
-  const grantKey = normalizeEmail(email);
-  const pendingOuterBizId = `initial_grant_pending_${grantKey}`;
-
   try {
-    const pending = await db.billingAccount.findUnique({
-      where: { outerBizId: pendingOuterBizId },
-      select: { id: true, status: true },
-    });
-
-    if (!pending) {
-      logger.info(
-        { userId, email, pendingOuterBizId, signupIp, result },
-        "No pending initial grant account found; skipping",
-      );
-      return result.isAbuse;
-    }
-
     if (result.isAbuse) {
-      // 同 IP 有其他账号：作废待审核额度
-      await db.billingAccount.update({
-        where: { outerBizId: pendingOuterBizId },
-        data: { status: "INVALID" },
-      });
+      const { postConsume } = await import("@/server/billing/services/post-consume");
+      const { getBalance } = await import("@/server/billing/services/get-balance");
+
+      const balance = await getBalance({ userId, accountType: "CREDIT" });
+      if (balance.totalSummary.available > 0) {
+        await postConsume({
+          userId,
+          accountType: "CREDIT",
+          amount: balance.totalSummary.available,
+          businessId: `abuse_clawback_${userId}_${Date.now()}`,
+          businessType: "ADMIN_DEDUCT",
+          description: `Abuse clawback: ${result.reason}`,
+        });
+      }
 
       logger.warn(
-        { userId, email, signupIp, existingEmails: result.existingEmails, pendingOuterBizId },
-        "Same IP abuse: invalidated pending initial credits",
+        { userId, email, signupIp, existingEmails: result.existingEmails },
+        "Same IP abuse: clawed back initial credits via Velobase deduct",
       );
     } else {
-      // 无同 IP 账号：解锁待审核额度
-      await db.billingAccount.update({
-        where: { outerBizId: pendingOuterBizId },
-        data: { status: "ACTIVE" },
-      });
-
       logger.info(
-        { userId, email, signupIp, pendingOuterBizId },
-        "No same IP abuse: activated pending initial credits",
+        { userId, email, signupIp },
+        "No same IP abuse: initial credits remain active",
       );
     }
 
@@ -249,8 +237,8 @@ export async function checkAndBlockEmailAbuse(
     });
   } catch (error) {
     logger.warn(
-      { error, userId, email, signupIp, pendingOuterBizId },
-      "Failed to apply email abuse decision to pending initial credits",
+      { error, userId, email, signupIp },
+      "Failed to apply email abuse decision",
     );
   }
 

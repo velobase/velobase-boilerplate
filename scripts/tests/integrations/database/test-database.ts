@@ -2,7 +2,7 @@
  * Database integration test
  * Verifies: table structure (schema sync) + seed data completeness
  *
- * Usage: npx tsx scripts/tests/database/test-database.ts
+ * Usage: npx tsx scripts/tests/integrations/database/test-database.ts
  */
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
