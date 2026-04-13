@@ -28,19 +28,22 @@
 
 这些 API 是框架提供的 SaaS 通用能力。**只调用，不修改。**
 
-| Router | 说明 | 代码位置 | 归属文档 | 状态 |
-| --- | --- | --- | --- | --- |
-| `product.*` | 产品 SKU 查询 | `src/server/product/routers/` | [payment](../integrations/payment/) | ✅ 已整理 |
-| `billing.*` | 积分操作（授予/冻结/消费/查余额） | `src/server/billing/routers/` | [payment](../integrations/payment/) | ✅ 已整理 |
-| `order.*` | 订单全流程（创建/支付/退款） | `src/server/order/routers/` | [payment](../integrations/payment/) | ✅ 已整理 |
-| `membership.*` | 订阅管理 | `src/server/membership/routers/` | [payment](../integrations/payment/) | ✅ 已整理 |
-| `promo.*` | 优惠码（验证/兑换） | `src/server/promo/routers/` | 框架功能，待整理 | ⏳ 待整理 |
-| `affiliate.*` | 联盟推广（激活/佣金/提现） | `src/server/api/routers/affiliate.ts` | 框架功能，待整理 | ⏳ 待整理 |
-| `account.*` | 用户账户管理 | `src/server/api/routers/account/` | 随 auth 集成 | ✅ 已整理 |
-| `notification.*` | 通知偏好管理 | `src/server/api/routers/notification.ts` | 第三方集成，待整理 | ⏳ 待整理 |
-| `admin.*` | 后台管理（39 个 procedure） | `src/server/admin/routers/` | 框架基础设施 | ✅ 已整理 |
+
+| Router           | 说明                   | 代码位置                                     | 归属文档                                | 状态    |
+| ---------------- | -------------------- | ---------------------------------------- | ----------------------------------- | ----- |
+| `product.`*      | 产品 SKU 查询            | `src/server/product/routers/`            | [payment](../integrations/payment/) | ✅ 已整理 |
+| `billing.*`      | 积分操作（授予/冻结/消费/查余额）   | `src/server/billing/routers/`            | [payment](../integrations/payment/) | ✅ 已整理 |
+| `order.*`        | 订单全流程（创建/支付/退款）      | `src/server/order/routers/`              | [payment](../integrations/payment/) | ✅ 已整理 |
+| `membership.*`   | 订阅管理                 | `src/server/membership/routers/`         | [payment](../integrations/payment/) | ✅ 已整理 |
+| `promo.*`        | 优惠码（验证/兑换）           | `src/server/promo/routers/`              | 框架功能，待整理                            | ⏳ 待整理 |
+| `affiliate.*`    | 联盟推广（激活/佣金/提现）       | `src/server/api/routers/affiliate.ts`    | 框架功能，待整理                            | ⏳ 待整理 |
+| `account.*`      | 用户账户管理               | `src/server/api/routers/account/`        | 随 auth 集成                           | ✅ 已整理 |
+| `notification.*` | 通知偏好管理               | `src/server/api/routers/notification.ts` | 第三方集成，待整理                           | ⏳ 待整理 |
+| `admin.*`        | 后台管理（39 个 procedure） | `src/server/admin/routers/`              | 框架基础设施                              | ✅ 已整理 |
+
 
 **AI 规则**：
+
 - ✅ 在业务代码中通过 `api.billing.getBalance.useQuery()` 等方式调用
 - ✅ 在服务端通过 `createCaller` 调用
 - ❌ 禁止修改这些 Router 的 procedure 签名
@@ -50,24 +53,27 @@
 
 这些 API 封装外部服务。**可按 Provider 模式扩展，但不改变接口签名。**
 
-| Router / Route | 说明 | 详细文档 | 状态 |
-| --- | --- | --- | --- |
-| `storage.*` | 对象存储 | [storage](../integrations/storage/) | ✅ 已整理 |
-| `auth/[...nextauth]` | 认证端点 | [auth](../integrations/auth/) | ✅ 已整理 |
-| `auth/github/callback` | GitHub OAuth 回调 | [auth](../integrations/auth/) | ✅ 已整理 |
-| `webhooks/stripe` | Stripe 支付回调 | [payment](../integrations/payment/) | ✅ 已整理 |
-| `webhooks/nowpayments` | NowPayments 回调 | [payment](../integrations/payment/) | ✅ 已整理 |
-| `webhooks/resend` | Resend 邮件状态回调 | [email](../integrations/email/) | ✅ 已整理 |
-| `telegram.*` | Telegram Bot 绑定/支付 | 第三方集成，待整理 | ⏳ 待整理 |
-| `webhooks/telegram` | Telegram Bot 回调 | 第三方集成，待整理 | ⏳ 待整理 |
-| `webhooks/lark-support` | 飞书客服卡片交互 | 第三方集成，待整理 | ⏳ 待整理 |
-| `lark/webhook` | 飞书事件订阅 | 第三方集成，待整理 | ⏳ 待整理 |
+
+| Router / Route          | 说明                 | 详细文档                                | 状态    |
+| ----------------------- | ------------------ | ----------------------------------- | ----- |
+| `storage.`*             | 对象存储               | [storage](../integrations/storage/) | ✅ 已整理 |
+| `auth/[...nextauth]`    | 认证端点               | [auth](../integrations/auth/)       | ✅ 已整理 |
+| `auth/github/callback`  | GitHub OAuth 回调    | [auth](../integrations/auth/)       | ✅ 已整理 |
+| `webhooks/stripe`       | Stripe 支付回调        | [payment](../integrations/payment/) | ✅ 已整理 |
+| `webhooks/nowpayments`  | NowPayments 回调     | [payment](../integrations/payment/) | ✅ 已整理 |
+| `webhooks/resend`       | Resend 邮件状态回调      | [email](../integrations/email/)     | ✅ 已整理 |
+| `telegram.*`            | Telegram Bot 绑定/支付 | 第三方集成，待整理                           | ⏳ 待整理 |
+| `webhooks/telegram`     | Telegram Bot 回调    | 第三方集成，待整理                           | ⏳ 待整理 |
+| `webhooks/lark-support` | 飞书客服卡片交互           | 第三方集成，待整理                           | ⏳ 待整理 |
+| `lark/webhook`          | 飞书事件订阅             | 第三方集成，待整理                           | ⏳ 待整理 |
+
 
 > **待整理项说明**：  
-> `telegram.*` + `webhooks/telegram` 属于 Telegram 第三方集成，归入 `docs/integration-guide.md` 第 10 项（通知）。  
+> `telegram.`* + `webhooks/telegram` 属于 Telegram 第三方集成，归入 `docs/integration-guide.md` 第 10 项（通知）。  
 > `webhooks/lark-support` + `lark/webhook` 属于飞书/Lark 第三方集成，同样归入第 10 项（通知）。
 
 **AI 规则**：
+
 - ✅ 添加新的 Provider（如新增支付网关），遵循已有 Provider 的目录结构
 - ✅ 添加新的 Webhook 路由，遵循下方 Webhook 约定
 - ❌ 禁止修改已有集成 API 的接口签名
@@ -77,17 +83,20 @@
 
 当前产品（AI Chat）的功能 API。**换产品时全部替换。**
 
-| Router | 说明 | 代码位置 |
-| --- | --- | --- |
-| `conversation.*` | 对话 CRUD / 分享 | `src/server/api/routers/conversation.ts` |
-| `agent.*` | 系统 Agent 查询 | `src/server/api/routers/agent.ts` |
-| `userAgent.*` | 用户 Agent 管理 | `src/server/api/routers/user-agent.ts` |
-| `project.*` | 项目管理 | `src/server/api/routers/project.ts` |
-| `repository.*` | 仓库绑定 | `src/server/api/routers/repository.ts` |
-| `github.*` | GitHub 集成 | `src/server/api/routers/github.ts` |
-| `api/chat` | AI 对话流式接口 | `src/app/api/chat/route.ts` |
+
+| Router           | 说明           | 代码位置                                     |
+| ---------------- | ------------ | ---------------------------------------- |
+| `conversation.`* | 对话 CRUD / 分享 | `src/server/api/routers/conversation.ts` |
+| `agent.*`        | 系统 Agent 查询  | `src/server/api/routers/agent.ts`        |
+| `userAgent.*`    | 用户 Agent 管理  | `src/server/api/routers/user-agent.ts`   |
+| `project.*`      | 项目管理         | `src/server/api/routers/project.ts`      |
+| `repository.*`   | 仓库绑定         | `src/server/api/routers/repository.ts`   |
+| `github.*`       | GitHub 集成    | `src/server/api/routers/github.ts`       |
+| `api/chat`       | AI 对话流式接口    | `src/app/api/chat/route.ts`              |
+
 
 **AI 规则**：
+
 - ✅ 新功能按 `src/modules/<name>/` 模式创建（参考 `modules/example/`）
 - ✅ 自由创建新 Router，挂载到 `src/server/api/root.ts`
 - ✅ 遵循下方编码约定
@@ -148,15 +157,17 @@ export const featureRouter = createTRPCRouter({
 
 ### 规则 3：错误码使用
 
-| 场景 | 错误码 | 谁来抛 |
-| --- | --- | --- |
-| 用户输入不合法 | `BAD_REQUEST` | service 层 |
-| 未登录 | `UNAUTHORIZED` | protectedProcedure 自动 |
-| 无权限 / 账号封禁 | `FORBIDDEN` | protectedProcedure 或 service 层 |
-| 资源不存在 | `NOT_FOUND` | service 层 |
-| 资源冲突 | `CONFLICT` | service 层 |
-| 请求频率过高 | `TOO_MANY_REQUESTS` | rateLimitedProcedure 或 IP 限流自动 |
-| 服务内部错误 | `INTERNAL_SERVER_ERROR` | 未捕获异常自动（会触发飞书告警） |
+
+| 场景         | 错误码                     | 谁来抛                            |
+| ---------- | ----------------------- | ------------------------------ |
+| 用户输入不合法    | `BAD_REQUEST`           | service 层                      |
+| 未登录        | `UNAUTHORIZED`          | protectedProcedure 自动          |
+| 无权限 / 账号封禁 | `FORBIDDEN`             | protectedProcedure 或 service 层 |
+| 资源不存在      | `NOT_FOUND`             | service 层                      |
+| 资源冲突       | `CONFLICT`              | service 层                      |
+| 请求频率过高     | `TOO_MANY_REQUESTS`     | rateLimitedProcedure 或 IP 限流自动 |
+| 服务内部错误     | `INTERNAL_SERVER_ERROR` | 未捕获异常自动（会触发飞书告警）               |
+
 
 ### 规则 4：分页约定
 
@@ -296,12 +307,16 @@ src/modules/<name>/
 
 以下文件是 API 层的基础设施，**一般不需要修改**：
 
-| 文件 | 职责 |
-| --- | --- |
-| `src/server/api/trpc.ts` | Context 创建 + Procedure 定义 + 中间件 |
-| `src/app/api/trpc/[trpc]/route.ts` | tRPC HTTP 适配器 + IP 全局限流 + 错误告警 |
-| `src/server/api/root.ts` | Router 注册中心（只做添加操作） |
+
+| 文件                                 | 职责                              |
+| ---------------------------------- | ------------------------------- |
+| `src/server/api/trpc.ts`           | Context 创建 + Procedure 定义 + 中间件 |
+| `src/app/api/trpc/[trpc]/route.ts` | tRPC HTTP 适配器 + IP 全局限流 + 错误告警  |
+| `src/server/api/root.ts`           | Router 注册中心（只做添加操作）             |
+
 
 修改场景（少见）：
+
 - 添加新的 Procedure 类型（如需要新的权限模型）→ 修改 `trpc.ts`
 - 修改全局错误处理策略 → 修改 `route.ts` 的 `onError`
+

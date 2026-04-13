@@ -8,7 +8,7 @@ import { createOrder } from "@/server/order/services/create-order";
 import { createPayment } from "@/server/order/services/create-payment";
 import { processFulfillmentByPayment } from "@/server/fulfillment/manager";
 import { logger } from "@/server/shared/telemetry/logger";
-import { track } from "@/analytics";
+import { safeTrack } from "@/analytics/server";
 import { BILLING_EVENTS } from "@/analytics/events/billing";
 
 const quickPurchaseInput = z.object({
@@ -139,8 +139,8 @@ export const quickPurchaseProcedure = protectedProcedure
         data: { hasPurchased: true },
       });
 
-      // 8. 埋点
-      track(BILLING_EVENTS.CREDITS_PURCHASE_SUCCESS, {
+      // 8. 埋点（服务端使用 safeTrack，不阻塞业务）
+      await safeTrack(BILLING_EVENTS.CREDITS_PURCHASE_SUCCESS, userId, {
         package_id: productId,
         credits: 0,
         price: product.price,

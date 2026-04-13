@@ -7,8 +7,9 @@ import { api } from '@/trpc/react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Check, Copy } from 'lucide-react'
-import { track, trackTwitterPurchase } from '@/analytics'
-import { getGoogleAdsConfig } from '@/config/analytics'
+import { track } from '@/analytics'
+import { trackTwitterPurchase } from '@/analytics/ads'
+import { getGoogleAdsConfig } from '@/analytics/ads'
 
 declare global {
   interface Window {

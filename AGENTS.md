@@ -106,6 +106,15 @@ src/
 - 使用 `createWorkerInstance()` 工厂函数创建 Worker，**禁止**直接 `new Worker()`
 - 新队列必须注册到 `src/workers/queues/index.ts` + `processors/index.ts` + `index.ts`
 
+### 分析（Analytics）
+
+> 详细架构和事件定义 → `[docs/integrations/analytics/](./docs/integrations/analytics/)`
+
+- **客户端**埋点用 `track()` from `@/analytics`，**服务端**埋点用 `safeTrack()` from `@/analytics/server`
+- **绝不在服务端代码中导入 `@/analytics`**（只能导入 `@/analytics/server` 和 `@/analytics/events/*`）
+- 新事件先在 `src/analytics/events/` 定义常量 + Properties interface，再使用
+- Feature Flag 客户端用 `useFeatureFlagVariantKey()`，服务端用 `getFeatureFlag()` from `@/server/experiments`
+
 ### 框架内置功能
 
 > 功能清单和各功能详细文档 → `[docs/features/](./docs/features/)`

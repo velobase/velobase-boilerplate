@@ -16,7 +16,7 @@ import { GeoUpdater } from "@/components/geo-updater";
 import { PostHogProvider } from "@/analytics";
 import { UtmTracker } from "@/components/analytics/utm-tracker";
 import { headers, cookies } from "next/headers";
-import { getGoogleAdsConfig } from "@/config/analytics";
+import { getGoogleAdsConfig } from "@/analytics/ads";
 import { auth } from "@/server/auth";
 import { getClientCountryFromHeaders } from "@/server/lib/get-client-country";
 import { isEeaLikeCountry } from "@/server/lib/is-eea-country";

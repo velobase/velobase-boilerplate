@@ -7,13 +7,13 @@ import { PostHog } from "posthog-node";
  * 当 API key 不存在时返回 null
  */
 export function getServerPostHog(): PostHog | null {
-  const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const apiKey = process.env.POSTHOG_API_KEY ?? process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (!apiKey) {
     return null;
   }
   return new PostHog(apiKey, {
     host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-    flushAt: 1, // 立即发送，因为服务端函数可能短暂运行
+    flushAt: 1,
     flushInterval: 0,
   });
 }
