@@ -42,7 +42,7 @@ AI：功能实现（写代码）
 
 | 序号  | 大类            | 三方服务                                 | 说明             | 状态  |
 | --- | ------------- | ------------------------------------ | -------------- | --- |
-| 6   | 后台任务（Queue）   | Redis + BullMQ                       | 异步处理（邮件、对账、清理） | 待梳理 |
+| 6   | 后台任务（Queue）   | Redis + BullMQ                       | 异步处理（邮件、对账、清理） | ✅ 已完成 |
 | 7   | 分析（Analytics） | PostHog（事件追踪 + Feature Flag）         | 用户行为追踪、A/B 测试  | 待梳理 |
 | 8   | AI/LLM        | OpenAI / Anthropic / xAI（via AI SDK） | AI 对话、Agent 能力 | 待梳理 |
 
