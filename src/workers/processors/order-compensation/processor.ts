@@ -17,10 +17,15 @@ import type { OrderCompensationJobData } from "../../queues/order-compensation.q
 
 const logger = createLogger("order-compensation");
 
-// Stripe client
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-09-30.clover",
-});
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2025-09-30.clover",
+    });
+  }
+  return _stripe;
+}
 
 function mapNowPaymentsTerminalStatus(status: string | null | undefined):
   | "PENDING"
@@ -190,7 +195,7 @@ async function checkAndCompensateStripePayment(
   // 如果还没有 PaymentIntent ID，但有 Checkout Session ID，则先通过 Session 查询
   if (!paymentIntentId && checkoutSessionId) {
     try {
-      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+      const session = await getStripe().checkout.sessions.retrieve(checkoutSessionId);
       isPaid = session.payment_status === "paid" && typeof session.payment_intent === "string";
 
       logger.info(
@@ -222,7 +227,7 @@ async function checkAndCompensateStripePayment(
   // 检查 payment intent
   if (!isPaid && paymentIntentId) {
     try {
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
       isPaid = paymentIntent.status === "succeeded";
       logger.info(
         { paymentId: payment.id, paymentIntentId, status: paymentIntent.status },

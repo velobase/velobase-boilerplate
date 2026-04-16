@@ -37,6 +37,7 @@ export interface UserDetailData {
     hasUsedProTrial: boolean
     proTrialConverted: boolean
     hitPaywallCount: number
+    canBypassBlur: boolean
   } | null
   // Subscription
   subscription: {

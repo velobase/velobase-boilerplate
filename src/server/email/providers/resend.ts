@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger";
 import type { EmailProvider, SendEmailParams, SendEmailResult } from "../types";
 
 const apiKey = process.env.RESEND_API_KEY;
-const resend = new Resend(apiKey);
+const resend = apiKey ? new Resend(apiKey) : null;
 
 const defaultFrom =
   process.env.EMAIL_FROM ??
@@ -28,7 +28,7 @@ export const resendProvider: EmailProvider = {
 
     logger.info({ to, provider: "resend" }, "Sending email via Resend");
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend!.emails.send({
       from,
       to,
       subject: params.subject,

@@ -19,10 +19,15 @@ import { handleStripeSubscriptionRenewal } from "@/server/order/services/handle-
 
 const logger = createLogger("subscription-compensation");
 
-// 独立 Stripe 客户端，避免与主进程耦合
-const stripe = new Stripe(getStripeSecretKey(), {
-  apiVersion: "2025-09-30.clover",
-});
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(getStripeSecretKey(), {
+      apiVersion: "2025-09-30.clover",
+    });
+  }
+  return _stripe;
+}
 
 export async function processSubscriptionCompensationJob(
   job: Job<SubscriptionCompensationJobData>
@@ -124,7 +129,7 @@ async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<v
   // 查询 Stripe 侧该订阅的最近 invoice，判断是否已经产生过实际扣款
   let invoices: Stripe.ApiList<Stripe.Invoice> | null = null;
   try {
-    invoices = await stripe.invoices.list({
+    invoices = await getStripe().invoices.list({
       subscription: subscription.gatewaySubscriptionId,
       limit: 5,
     });

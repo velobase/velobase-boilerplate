@@ -1,4 +1,4 @@
-import { stripe } from "./client";
+import { getStripe } from "./client";
 import type { Order, Payment, Product } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -52,7 +52,7 @@ export async function createStripeCheckoutSession({
       },
     };
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    const session = await getStripe().checkout.sessions.create(sessionParams);
 
     return {
       sessionId: session.id,

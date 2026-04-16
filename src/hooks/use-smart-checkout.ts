@@ -40,13 +40,14 @@ export function useSmartCheckout() {
         cancelUrl: cancelUrl ?? window.location.href,
       })
 
-      if (result.url) {
+      if (result.status === 'OK' && result.url) {
         window.location.href = result.url
         return { status: 'REDIRECTING' }
       }
 
-      toast.error('Failed to create checkout session.')
-      return { status: 'ERROR', message: 'No payment URL returned' }
+      const errMsg = result.status === 'CONFLICT' ? result.message : 'No payment URL returned'
+      toast.error(errMsg)
+      return { status: 'ERROR', message: errMsg }
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Checkout failed'
       toast.error(msg)

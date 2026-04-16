@@ -15,6 +15,7 @@ import { accountRouter } from "@/server/api/routers/account";
 import { affiliateRouter } from "@/server/api/routers/affiliate";
 import { notificationRouter } from "@/server/api/routers/notification";
 import { telegramRouter } from "@/server/telegram/router";
+import { exampleRouter } from "@/modules/example/server/router";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -45,6 +46,8 @@ export const appRouter = createTRPCRouter({
   account: accountRouter,
   // Telegram Stars Payment
   telegram: telegramRouter,
+  // Example module (demo/reference)
+  example: exampleRouter,
 });
 
 // export type definition of API

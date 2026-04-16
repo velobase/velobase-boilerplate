@@ -1,21 +1,20 @@
-import { stripe } from "./client";
+import { getStripe } from "./client";
 import type Stripe from "stripe";
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-if (!webhookSecret) {
-  throw new Error("STRIPE_WEBHOOK_SECRET is not set");
-}
 
 export async function verifyStripeWebhook(
   body: string,
   signature: string
 ): Promise<Stripe.Event> {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    throw new Error("STRIPE_WEBHOOK_SECRET is not set");
+  }
+
   try {
-    const event = stripe.webhooks.constructEvent(
+    const event = getStripe().webhooks.constructEvent(
       body,
       signature,
-      webhookSecret!
+      webhookSecret
     );
     return event;
   } catch (error) {

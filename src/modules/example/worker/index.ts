@@ -1,5 +1,3 @@
-import { exampleQueue, EXAMPLE_QUEUE_NAME } from "./queue";
-
 export { processExampleJob } from "./processor";
 export { exampleQueue, EXAMPLE_QUEUE_NAME, type ExampleJobData } from "./queue";
 

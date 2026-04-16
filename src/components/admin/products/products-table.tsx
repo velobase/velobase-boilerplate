@@ -21,7 +21,6 @@ import {
   Filter,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 import { ProductListFilter, defaultFilters, type ProductFilters } from "./product-list-filter"
 import { ProductListTable } from "./product-list-table"
 import { ProductDetailSheet } from "./product-detail-sheet"

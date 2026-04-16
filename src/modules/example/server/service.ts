@@ -1,4 +1,5 @@
-import { db } from "@/server/db";
+// db import available when you implement actual persistence
+// import { db } from "@/server/db";
 import { createLogger } from "@/lib/logger";
 
 const logger = createLogger("example-service");

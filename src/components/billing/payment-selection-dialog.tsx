@@ -54,7 +54,7 @@ export function PaymentSelectionDialog() {
             cancelUrl: window.location.href,
           })
           closePaymentDialog()
-          if (result.url) {
+          if (result.status === 'OK' && result.url) {
             window.location.href = result.url
           }
         } catch {

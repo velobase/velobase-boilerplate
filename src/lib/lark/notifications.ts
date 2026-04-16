@@ -1085,6 +1085,7 @@ function buildEmailAbuseCard(data: EmailAbuseNotification): LarkCard {
 /**
  * 发送视频生成完成通知
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _sendVideoGenerationNotification(
   data: _DeprecatedVideoGenerationNotification
 ): Promise<void> {

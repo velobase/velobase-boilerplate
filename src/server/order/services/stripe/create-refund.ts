@@ -1,4 +1,4 @@
-import { stripe } from "./client";
+import { getStripe } from "./client";
 import type Stripe from "stripe";
 
 interface CreateRefundParams {
@@ -13,7 +13,7 @@ export async function createStripeRefund({
   reason,
 }: CreateRefundParams) {
   try {
-    const refund = await stripe.refunds.create({
+    const refund = await getStripe().refunds.create({
       payment_intent: paymentIntentId,
       amount,
       reason: reason as Stripe.RefundCreateParams.Reason | undefined,

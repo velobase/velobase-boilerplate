@@ -19,7 +19,6 @@ import {
   BookOpen,
   HelpCircle,
   Users,
-  Wallet,
   Zap,
   Lock,
   Unlock,

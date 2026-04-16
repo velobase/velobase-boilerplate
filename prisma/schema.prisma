@@ -431,6 +431,7 @@ model UserStats {
   proTrialSource       String?   @map("pro_trial_source")
   proTrialConverted    Boolean   @default(false) @map("pro_trial_converted")
   hitPaywallCount      Int       @default(0) @map("hit_paywall_count")
+  canBypassBlur        Boolean   @default(false) @map("can_bypass_blur")
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)

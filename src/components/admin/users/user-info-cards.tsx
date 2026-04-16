@@ -220,8 +220,8 @@ export function UserInfoCards({ user }: UserInfoCardsProps) {
               <p className="text-xs text-muted-foreground">Orders</p>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <p className="text-2xl font-bold">{user.stats?.generatedVideosCount ?? 0}</p>
-              <p className="text-xs text-muted-foreground">Videos</p>
+              <p className="text-2xl font-bold">{user.stats?.hitPaywallCount ?? 0}</p>
+              <p className="text-xs text-muted-foreground">Paywall Hits</p>
             </div>
           </div>
           <Separator className="my-3" />
