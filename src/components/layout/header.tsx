@@ -20,6 +20,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/logout";
+import { useTranslations } from "next-intl";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 
 type HeaderVariant = "default" | "minimal";
 
@@ -29,6 +31,7 @@ interface HeaderProps {
 }
 
 export function Header({ variant = "default", className }: HeaderProps) {
+  const t = useTranslations("nav");
   const { data: session } = useSession();
   const { setLoginModalOpen } = useAuthStore();
   const router = useRouter();
@@ -36,13 +39,11 @@ export function Header({ variant = "default", className }: HeaderProps) {
     router.push('/');
   };
 
-  // Fetch user billing status to get credits
   const { data: billingStatus } = api.account.getBillingStatus.useQuery(undefined, {
     enabled: !!session && variant === "default",
-    refetchInterval: 10000, // Refetch every 10s to keep it fresh
+    refetchInterval: 10000,
   });
 
-  // Fetch affiliate status to show affiliate link for eligible users
   const { data: affiliateStatus } = api.affiliate.getStatus.useQuery(undefined, {
     enabled: !!session && variant === "default",
   });
@@ -55,7 +56,6 @@ export function Header({ variant = "default", className }: HeaderProps) {
     void logout({ callbackUrl: "/", source: "header" });
   };
 
-  // Minimal variant for share pages
   if (variant === "minimal") {
     return (
       <header className={cn(
@@ -66,12 +66,12 @@ export function Header({ variant = "default", className }: HeaderProps) {
           <VibeLogo size="sm" className="text-white" />
         </Link>
         <Link href="/">
-          <Button 
-            size="sm" 
-            variant="ghost" 
+          <Button
+            size="sm"
+            variant="ghost"
             className="text-white/70 hover:text-white text-xs gap-1"
           >
-            Try Free <ArrowRight className="w-3 h-3" />
+            {t("tryFree")} <ArrowRight className="w-3 h-3" />
           </Button>
         </Link>
       </header>
@@ -86,33 +86,30 @@ export function Header({ variant = "default", className }: HeaderProps) {
       )}>
         <div className="flex h-20 items-center px-6 md:px-8">
           <div className="flex items-center flex-1">
-            {/* Logo */}
             <button onClick={handleLogoClick} className="hover:opacity-80 transition-opacity">
               <VibeLogo size="md" className="text-foreground drop-shadow-md" />
             </button>
           </div>
 
-          {/* Right Section */}
           <div className="flex items-center gap-4">
-            {/* Affiliate quick access for eligible users (desktop only) */}
             {session && isAffiliateEligible && (
-              <Link 
-                href="/account/affiliate" 
+              <Link
+                href="/account/affiliate"
                 className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-accent/50 border-border text-muted-foreground hover:bg-accent hover:text-foreground transition-all text-sm"
               >
                 <Users className="w-4 h-4" />
-                <span className="font-medium">Referrals (30%)</span>
+                <span className="font-medium">{t("referrals", { percent: 30 })}</span>
               </Link>
             )}
+            <LocaleSwitcher />
             <ThemeToggle />
             {session ? (
               <>
-                {/* Credits Display */}
                 <Link href="/pricing">
                   <div className={`
                     flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-sm transition-all
-                    ${isLowBalance 
-                      ? "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20" 
+                    ${isLowBalance
+                      ? "bg-orange-500/10 border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
                       : "bg-accent/50 border-border text-muted-foreground hover:bg-accent hover:text-foreground"
                     }
                   `}>
@@ -151,32 +148,32 @@ export function Header({ variant = "default", className }: HeaderProps) {
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
-                        Profile
+                        {t("profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/history" className="cursor-pointer">
                         <History className="mr-2 h-4 w-4" />
-                        History
+                        {t("history")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/account/billing" className="cursor-pointer">
                         <CreditCard className="mr-2 h-4 w-4" />
-                        Billing
+                        {t("billing")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/pricing" className="cursor-pointer">
                         <Tag className="mr-2 h-4 w-4" />
-                        Pricing
+                        {t("pricing")}
                       </Link>
                     </DropdownMenuItem>
                     {isAffiliateEligible && (
                       <DropdownMenuItem asChild>
                         <Link href="/account/affiliate" className="cursor-pointer">
                           <Users className="mr-2 h-4 w-4" />
-                          Referrals (30%)
+                          {t("referrals", { percent: 30 })}
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -186,18 +183,18 @@ export function Header({ variant = "default", className }: HeaderProps) {
                       className="cursor-pointer text-destructive"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
+                      {t("signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
-              <Button 
+              <Button
                 variant="ghost"
-              onClick={() => setLoginModalOpen(true, undefined, "header")}
+                onClick={() => setLoginModalOpen(true, undefined, "header")}
                 className="text-foreground hover:bg-accent hover:text-accent-foreground"
               >
-                Log in
+                {t("logIn")}
               </Button>
             )}
           </div>

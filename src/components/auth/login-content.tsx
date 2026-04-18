@@ -10,9 +10,9 @@ import {
   TURNSTILE_SITE_KEY,
 } from "./use-login";
 import { OAUTH_PROVIDERS } from "./oauth-providers";
+import { useTranslations } from "next-intl";
 
 // ============ Sub-components ============
-
 
 const PromotionBadge = () => null;
 
@@ -62,15 +62,15 @@ const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({ onSuccess }) => {
 // ============ Views ============
 
 interface LoginContentProps {
-  /** Optional: Custom title/description components to use instead of DialogTitle/DialogDescription */
   TitleComponent?: React.ComponentType<{ className?: string; children: React.ReactNode }>;
   DescriptionComponent?: React.ComponentType<{ className?: string; children: React.ReactNode }>;
 }
 
 export function LoginContent({ TitleComponent, DescriptionComponent }: LoginContentProps) {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
   const login = useLogin();
 
-  // Default to simple divs if no components provided
   const Title = TitleComponent ?? (({ className, children }: { className?: string; children: React.ReactNode }) => (
     <h2 className={className}>{children}</h2>
   ));
@@ -85,13 +85,13 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
         <div className="mb-6 scale-110">
           <VibeLogo size="lg" />
         </div>
-        
+
         <div className="mb-8 flex flex-col items-center gap-2">
           <Title className="text-2xl font-bold tracking-tight text-center">
-            Welcome to AI SaaS
+            {t("welcomeTitle")}
           </Title>
           <Description className="text-center text-base text-muted-foreground">
-            Sign in to start building with AI SaaS
+            {t("welcomeSubtitle")}
           </Description>
           <div className="mt-2">
             <PromotionBadge />
@@ -106,7 +106,7 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
               className="relative w-full h-12 px-4 flex items-center justify-center gap-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 text-[15px] font-medium text-slate-700 dark:text-slate-200 group shadow-sm"
             >
               {provider.logo}
-              <span>Continue with {provider.name}</span>
+              <span>{t("continueWith", { provider: provider.name })}</span>
             </button>
           ))}
 
@@ -115,7 +115,7 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
               <div className="w-full border-t border-slate-100 dark:border-slate-800/60" />
             </div>
             <div className="relative flex justify-center text-[11px] uppercase tracking-wider font-medium text-slate-400 bg-white dark:bg-slate-950 px-3">
-              Or
+              {t("or")}
             </div>
           </div>
 
@@ -124,12 +124,12 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
             className="w-full h-12 px-4 flex items-center justify-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 text-[15px] font-medium text-slate-600 dark:text-slate-300"
           >
             <Mail className="w-[18px] h-[18px]" />
-            <span>Continue with Email</span>
+            <span>{t("continueWithEmail")}</span>
           </button>
         </div>
 
         <p className="text-center text-[11px] text-muted-foreground mt-8 px-6">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          {t("termsAgreement")}
         </p>
       </div>
     );
@@ -144,24 +144,24 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
           className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors mb-6 -ml-1"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {tCommon("back")}
         </button>
 
         <div className="mb-8">
           <Title className="text-xl font-bold mb-2">
-            Sign in with Email
+            {t("signInWithEmail")}
           </Title>
           <Description className="text-base text-muted-foreground">
-            {login.isPasswordMode 
-              ? "Enter your password to sign in." 
-              : "We'll send you a magic link to sign in instantly."}
+            {login.isPasswordMode
+              ? t("enterPasswordDesc")
+              : t("magicLinkDesc")}
           </Description>
         </div>
 
         <form onSubmit={login.handleFormSubmit} className="space-y-4 relative">
           <div className="space-y-1.5 relative">
             <label htmlFor="email" className="text-xs font-medium text-slate-500 uppercase tracking-wider ml-1">
-              Email address
+              {t("emailLabel")}
             </label>
             <input
               id="email"
@@ -170,10 +170,10 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
               onChange={(e) => login.handleEmailChange(e.target.value)}
               onBlur={(e) => login.handleEmailBlur(e.target.value)}
               onKeyDown={login.handleAutocompleteKeyDown}
-              placeholder="name@example.com"
+              placeholder={t("emailPlaceholder")}
               className={cn(
                 "w-full h-12 px-4 rounded-xl border bg-white dark:bg-slate-900 text-[16px] transition-all duration-200 outline-none",
-                login.error 
+                login.error
                   ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 text-red-900 placeholder:text-red-300"
                   : "border-slate-200 dark:border-slate-800 placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
               )}
@@ -185,10 +185,9 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
               spellCheck={false}
               inputMode="email"
             />
-            
-            {/* Autocomplete Dropdown */}
+
             {login.showAutocomplete && login.suggestions.length > 0 && (
-              <div 
+              <div
                 ref={login.autocompleteRef}
                 className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-xl overflow-hidden max-h-[240px] overflow-y-auto"
               >
@@ -201,8 +200,8 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
                     }}
                     className={cn(
                       "px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-2",
-                      idx === login.autocompleteIndex 
-                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100" 
+                      idx === login.autocompleteIndex
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900"
                     )}
                   >
@@ -214,7 +213,6 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
             )}
           </div>
 
-          {/* Password Field */}
           <div
             className={cn(
               "overflow-hidden transition-all duration-300 ease-out",
@@ -223,7 +221,7 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
           >
             <div className="space-y-1.5 pt-1">
               <label htmlFor="password" className="text-xs font-medium text-slate-500 uppercase tracking-wider ml-1">
-                Password
+                {t("passwordLabel")}
               </label>
               <div className="relative">
                 <input
@@ -234,10 +232,10 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
                     login.setPassword(e.target.value);
                     login.setError(null);
                   }}
-                  placeholder="Enter your password"
+                  placeholder={t("passwordPlaceholder")}
                   className={cn(
                     "w-full h-12 px-4 pr-12 rounded-xl border bg-white dark:bg-slate-900 text-[16px] transition-all duration-200 outline-none",
-                    login.error 
+                    login.error
                       ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 text-red-900 placeholder:text-red-300"
                       : "border-slate-200 dark:border-slate-800 placeholder:text-slate-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
                   )}
@@ -276,10 +274,10 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
             {login.isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                {login.isPasswordMode ? "Signing in..." : "Sending Link..."}
+                {login.isPasswordMode ? t("signingIn") : t("sendingLink")}
               </>
             ) : (
-              login.isPasswordMode ? "Login" : "Send Magic Link"
+              login.isPasswordMode ? t("login") : t("sendMagicLink")
             )}
           </button>
         </form>
@@ -298,11 +296,14 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
         </div>
 
         <Title className="text-2xl font-bold mb-3">
-          Check your inbox
+          {t("checkInbox")}
         </Title>
-        
+
         <Description className="text-base mb-8 max-w-[280px] mx-auto text-muted-foreground">
-          We sent a magic link to <span className="font-medium text-slate-900 dark:text-slate-100">{login.email}</span>
+          {t.rich("magicLinkSent", {
+            email: login.email,
+            bold: (chunks) => <span className="font-medium text-slate-900 dark:text-slate-100">{chunks}</span>,
+          })}
         </Description>
 
         <div className="flex flex-col gap-3 w-full">
@@ -311,15 +312,15 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
               onClick={() => window.open(provider.url, "_blank")}
               className="w-full h-12 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-[15px] hover:bg-slate-800 dark:hover:bg-slate-200 transition-all"
             >
-              Open {provider.name}
+              {t("openProvider", { provider: provider.name })}
             </button>
           )}
-          
+
           <button
             onClick={login.handleUseDifferentEmail}
             className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 py-2 transition-colors"
           >
-            Use a different email
+            {t("useDifferentEmail")}
           </button>
         </div>
       </div>
@@ -328,4 +329,3 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
 
   return null;
 }
-

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +7,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import { track } from "@/analytics";
 import { BILLING_EVENTS } from "@/analytics/events/billing";
+import { useTranslations } from "next-intl";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscriptionProducts, useCreditsPackages, useCreditsPackVariant } from "@/hooks/use-pricing-products";
 import { useSmartCheckout } from "@/hooks/use-smart-checkout";
@@ -40,6 +40,7 @@ export function InsufficientCreditsDialog({
   trialEndsAt,
   userTier = "starter",
 }: InsufficientCreditsDialogProps) {
+  const t = useTranslations("billing");
   const isMobile = useIsMobile();
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [interval, setInterval] = useState<"month" | "year">("year");
@@ -98,12 +99,12 @@ export function InsufficientCreditsDialog({
       });
 
       if (result.status === "ERROR") {
-        toast.error(result.message || "Failed to initiate purchase");
+        toast.error(result.message || t("purchaseFailed"));
         setIsProcessing(null);
       }
     } catch (error) {
       console.error("Purchase error:", error);
-      toast.error("Failed to initiate purchase");
+      toast.error(t("purchaseFailed"));
       setIsProcessing(null);
     }
   };
@@ -189,8 +190,8 @@ export function InsufficientCreditsDialog({
       <Drawer open={isOpen} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-background p-0 gap-0 max-h-[90vh]">
           <VisuallyHidden>
-            <DrawerTitle>Get More Credits</DrawerTitle>
-            <DrawerDescription>Purchase credits or upgrade your subscription</DrawerDescription>
+            <DrawerTitle>{t("getMoreCredits")}</DrawerTitle>
+            <DrawerDescription>{t("purchaseCreditsDesc")}</DrawerDescription>
           </VisuallyHidden>
           <div className="overflow-y-auto flex-1">
             <CreditsDialogContent {...contentProps} />
@@ -204,8 +205,8 @@ export function InsufficientCreditsDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px] p-0 gap-0 overflow-hidden bg-background border-border shadow-2xl">
         <VisuallyHidden>
-          <DialogTitle>Get More Credits</DialogTitle>
-          <DialogDescription>Purchase credits or upgrade your subscription</DialogDescription>
+          <DialogTitle>{t("getMoreCredits")}</DialogTitle>
+          <DialogDescription>{t("purchaseCreditsDesc")}</DialogDescription>
         </VisuallyHidden>
         <CreditsDialogContent {...contentProps} />
       </DialogContent>

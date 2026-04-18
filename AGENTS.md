@@ -166,3 +166,39 @@ src/
 - **注册反滥用**：`src/server/features/anti-abuse/` — 修改检测策略看代码中策略函数
 - **CDN 适配**：`src/server/features/cdn-adapters/` — IP/国家提取、Flexible SSL 检测
 
+### 国际化（i18n）
+
+> 架构设计详见 `[docs/architecture/i18n-locale.md](./docs/architecture/i18n-locale.md)`  
+> 语言配置 → `src/i18n/config.ts`；请求解析 → `src/i18n/request.ts`；文案 → `messages/*.json`
+
+**核心规则：**
+
+- 所有用户可见文案**必须**通过 `useTranslations(namespace)`（Client Component）或 `getTranslations(namespace)`（Server Component）获取
+- **禁止**在组件 / 页面的 JSX 中硬编码用户可见的英文字符串
+- Client Component 中 `useTranslations` 可直接使用，无需额外配置（根 Layout 已注入 `NextIntlClientProvider`）
+- Server Component 中使用 `getTranslations`（从 `next-intl/server` 导入），无副作用可直接 `await`
+
+**命名空间（namespace）边界：**
+
+| 命名空间 | 归属 | 说明 |
+|---|---|---|
+| `common` `nav` `auth` `billing` `payment` `aiChat` `errors` `account` `admin` | **框架** | 由框架维护，**禁止**在此下新增业务 key |
+| `landing` `product` 及其他自定义 key | **业务方** | 开发者在 `messages/en.json` 下自由添加 |
+
+**新增 module 的文案约定：**
+- 命名空间：`{moduleName}` （如 `aiChat`、`explorer`）
+- key 结构：`{component}.{key}`（如 `aiChat.errorNetwork`）
+
+**语言切换：**
+- 用户切换语言通过 `LocaleSwitcher` 组件（写 `NEXT_LOCALE` Cookie → `location.reload()`）
+- Cookie 优先级最高，其次 `Accept-Language`，兜底 `en`
+- 禁止直接操作 `NEXT_LOCALE` Cookie，统一通过 `LocaleSwitcher`
+
+**邮件模板：**
+- 邮件渲染不在 Next.js 请求上下文中，**不使用** `next-intl`
+- 需要多语言时，通过 `locale` 参数显式传入，使用独立的消息加载函数
+
+**tRPC 错误处理：**
+- 服务端 `TRPCError.message` 保持 code 字符串（如 `"USER_NOT_FOUND"`），**禁止**在服务端做语言翻译
+- 前端展示错误时通过 `t('errors.USER_NOT_FOUND')` 在 Client 侧翻译
+

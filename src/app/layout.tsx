@@ -4,6 +4,8 @@ import { type Metadata, type Viewport } from "next";
 import { Inter, JetBrains_Mono, Poppins } from "next/font/google";
 import Script from "next/script";
 import { Suspense } from "react";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { SessionProvider } from "next-auth/react";
@@ -79,9 +81,12 @@ export default async function RootLayout({
   const consent = cookieStore.get(CONSENT_COOKIE)?.value ?? "";
   const analyticsEnabled = !isEea || consent === "all";
 
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       data-eea={isEea ? "1" : "0"}
       className={`${inter.variable} ${jetbrainsMono.variable} ${poppins.variable}`}
       suppressHydrationWarning
@@ -115,6 +120,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body>
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -145,6 +151,7 @@ export default async function RootLayout({
             </PostHogProvider>
           </SessionProvider>
         </ThemeProvider>
+        </NextIntlClientProvider>
         {isEea && !consent ? <CookieBar /> : null}
       </body>
     </html>
