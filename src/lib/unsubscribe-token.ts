@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(process.env.RESEND_WEBHOOK_SECRET || process.env.AUTH_SECRET || "fallback_secret");
+const SECRET = new TextEncoder().encode(process.env.RESEND_WEBHOOK_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret");
 
 export interface UnsubscribePayload {
   uid: string; // User ID

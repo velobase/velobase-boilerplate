@@ -57,7 +57,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 RUN corepack enable pnpm && \
     pnpm install --frozen-lockfile --prod --ignore-scripts && \
-    pnpm add tsx && \
+    pnpm add tsx prisma && \
     pnpm prisma generate && \
     rm -rf /root/.cache
 
@@ -76,20 +76,14 @@ COPY --from=builder --chown=appuser:nodejs /app/next.config.js ./
 COPY --chown=appuser:nodejs src ./src
 COPY --chown=appuser:nodejs tsconfig.json ./
 
+# --- Entrypoint script (runs migrations then starts services) ---
+COPY --chown=appuser:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 USER appuser
 
 # Default: all-in-one mode
 ENV SERVICE_MODE=all
 EXPOSE 3000 3001 3002
 
-# Entrypoint: route to the correct start command based on SERVICE_MODE
-CMD ["sh", "-c", "\
-  if [ \"$SERVICE_MODE\" = 'web' ]; then \
-    exec node server.js; \
-  elif [ \"$SERVICE_MODE\" = 'api' ]; then \
-    exec node --import tsx src/api/index.ts; \
-  elif [ \"$SERVICE_MODE\" = 'worker' ]; then \
-    exec node --import tsx src/workers/index.ts; \
-  else \
-    exec node --import tsx src/server/standalone.ts; \
-  fi"]
+CMD ["./docker-entrypoint.sh"]

@@ -78,7 +78,7 @@ See `.env.example` for the full list with comments. Key variables:
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL connection string |
 | `REDIS_HOST` / `REDIS_PORT` | Redis for BullMQ and caching |
-| `AUTH_SECRET` | NextAuth secret (`npx auth secret`) |
+| `NEXTAUTH_SECRET` | NextAuth secret (`npx auth secret`) |
 | `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth |
 | `STRIPE_SECRET_KEY` | Stripe payments |
 | `RESEND_API_KEY` | Email sending |

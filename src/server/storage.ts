@@ -85,6 +85,17 @@ export function getStorageClient(): S3Client {
 }
 
 /**
+ * Transparently prepend STORAGE_PATH_PREFIX to S3 object keys.
+ * Application-level code works with unprefixed keys; the prefix is only
+ * applied when interacting with the underlying S3-compatible API.
+ */
+export function resolveStorageKey(key: string): string {
+  const prefix = env.STORAGE_PATH_PREFIX;
+  if (!prefix) return key;
+  return `${prefix}/${key}`;
+}
+
+/**
  * Get storage bucket name
  */
 export function getStorageBucket(): string {
@@ -110,9 +121,10 @@ export function generateFileKey(filename: string, userId: string): string {
  * Note: This generates the public URL format. For temporary access, use getStorageSignedUrl instead.
  */
 export function getPublicUrl(key: string): string {
-  // If CDN URL is configured, use it
+  const resolved = resolveStorageKey(key);
+
   if (env.CDN_BASE_URL) {
-    return `${env.CDN_BASE_URL}/${key}`;
+    return `${env.CDN_BASE_URL}/${resolved}`;
   }
   
   const provider = env.STORAGE_PROVIDER ?? "aws";
@@ -120,22 +132,19 @@ export function getPublicUrl(key: string): string {
   const region = env.STORAGE_REGION ?? "us-east-1";
   
   if (provider === "aws") {
-    return `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    return `https://${bucket}.s3.${region}.amazonaws.com/${resolved}`;
   } else if (provider === "aliyun") {
-    // Aliyun OSS uses virtual-hosted style: https://bucket.region.aliyuncs.com/key
-    return `https://${bucket}.${region}.aliyuncs.com/${key}`;
+    return `https://${bucket}.${region}.aliyuncs.com/${resolved}`;
   } else if (provider === "gcs") {
-    return `https://storage.googleapis.com/${bucket}/${key}`;
+    return `https://storage.googleapis.com/${bucket}/${resolved}`;
   } else if (provider === "minio") {
     const endpoint = env.STORAGE_ENDPOINT ?? "http://localhost:9000";
-    return `${endpoint}/${bucket}/${key}`;
+    return `${endpoint}/${bucket}/${resolved}`;
   } else if (provider === "r2") {
-    // R2 with custom domain configured via CDN_BASE_URL
-    // Fallback to R2.dev URL if no CDN configured
-    return `https://${bucket}.r2.dev/${key}`;
+    return `https://${bucket}.r2.dev/${resolved}`;
   }
   
-  return `${env.STORAGE_ENDPOINT}/${bucket}/${key}`;
+  return `${env.STORAGE_ENDPOINT}/${bucket}/${resolved}`;
 }
 
 /**
@@ -154,7 +163,7 @@ export async function putObject(
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
-        Key: key,
+        Key: resolveStorageKey(key),
         Body: buffer,
         ContentType: contentType,
       }),
@@ -188,7 +197,7 @@ export async function getStorageSignedUrl(key: string, expiresIn = 3600): Promis
   
   const command = new GetObjectCommand({
     Bucket: bucket,
-    Key: key,
+    Key: resolveStorageKey(key),
   });
 
   return await getSignedUrl(client, command, { expiresIn });
@@ -210,7 +219,7 @@ export async function getUploadPresignedUrl(
 
   const commandInput: PutObjectCommandInput = {
     Bucket: bucket,
-    Key: key,
+    Key: resolveStorageKey(key),
     ContentType: contentType,
   };
 
@@ -262,7 +271,7 @@ export async function getObject(key: string): Promise<Buffer> {
 
   const command = new GetObjectCommand({
     Bucket: bucket,
-    Key: key,
+    Key: resolveStorageKey(key),
   });
 
   const response = await client.send(command);

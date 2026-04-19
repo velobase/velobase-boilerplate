@@ -19,11 +19,11 @@ function getCallbackBase(extra: unknown): string {
   const u =
     typeof obj.SuccessURL === "string" && obj.SuccessURL.length > 0
       ? obj.SuccessURL
-      : process.env.NEXT_PUBLIC_APP_URL ?? "";
+      : env.APP_URL ?? "";
   try {
     return new URL(u).origin;
   } catch {
-    return process.env.NEXT_PUBLIC_APP_URL ?? "";
+    return env.APP_URL ?? "";
   }
 }
 

@@ -7,11 +7,12 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET:
+    NEXTAUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
+    APP_URL: z.string().url().optional(),
     AUTH_DISCORD_ID: z.string().optional(),
     AUTH_DISCORD_SECRET: z.string().optional(),
     AUTH_GOOGLE_ID: z.string().optional(),
@@ -19,8 +20,10 @@ export const env = createEnv({
     AUTH_GITHUB_ID: z.string().optional(),
     AUTH_GITHUB_SECRET: z.string().optional(),
     DATABASE_URL: z.string().url(),
-    REDIS_HOST: z.string(),
-    REDIS_PORT: z.string().transform((val) => parseInt(val, 10)),
+    // Redis: either REDIS_URL (Velobase Cloud / managed) or individual REDIS_HOST+PORT fields
+    REDIS_URL: z.string().url().optional(),
+    REDIS_HOST: z.string().optional(),
+    REDIS_PORT: z.string().optional().transform((val) => val ? parseInt(val, 10) : undefined),
     REDIS_USER: z.string().optional(),
     REDIS_PASSWORD: z.string().optional(),
     REDIS_DB: z.string().transform((val) => parseInt(val, 10)).default("0"),
@@ -35,6 +38,8 @@ export const env = createEnv({
     STORAGE_ACCESS_KEY_ID: z.string().optional(),
     STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
     STORAGE_ENDPOINT: z.string().optional(),
+    // Optional key prefix for shared-bucket deployments (not needed with per-tenant buckets)
+    STORAGE_PATH_PREFIX: z.string().optional(),
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
     // Force payment gateway for testing (bypasses default Stripe routing)
@@ -99,8 +104,9 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    AUTH_SECRET: process.env.AUTH_SECRET,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    APP_URL: process.env.APP_URL ?? process.env.NEXTAUTH_URL,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
@@ -108,6 +114,7 @@ export const env = createEnv({
     AUTH_GITHUB_ID: process.env.AUTH_GITHUB_ID,
     AUTH_GITHUB_SECRET: process.env.AUTH_GITHUB_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
+    REDIS_URL: process.env.REDIS_URL,
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_USER: process.env.REDIS_USER,
@@ -124,6 +131,7 @@ export const env = createEnv({
     STORAGE_ACCESS_KEY_ID: process.env.STORAGE_ACCESS_KEY_ID,
     STORAGE_SECRET_ACCESS_KEY: process.env.STORAGE_SECRET_ACCESS_KEY,
     STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT,
+    STORAGE_PATH_PREFIX: process.env.STORAGE_PATH_PREFIX,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     FORCE_PAYMENT_GATEWAY: process.env.FORCE_PAYMENT_GATEWAY,

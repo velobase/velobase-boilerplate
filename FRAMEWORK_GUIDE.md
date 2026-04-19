@@ -120,7 +120,7 @@ sequenceDiagram
 
 ```bash
 # 认证
-AUTH_SECRET=         # 运行 `npx auth secret` 生成
+NEXTAUTH_SECRET=     # 运行 `npx auth secret` 生成
 AUTH_URL=http://localhost:3000
 
 # 数据库
@@ -255,7 +255,7 @@ SupportTicket
 
 > 目标：`pnpm dev` 跑起来，可以注册登录
 
-- 配置 `DATABASE_URL` + `REDIS_HOST` + `AUTH_SECRET`
+- 配置 `DATABASE_URL` + `REDIS_HOST` + `NEXTAUTH_SECRET`
 - 配置至少一个 OAuth 登录（[认证文档](./docs/integrations/auth/)）
 - `docker compose up -d` → `pnpm db:migrate` → `pnpm dev`
 - 确认访问 `/auth/signin` 可以登录
@@ -322,7 +322,7 @@ SupportTicket
 
 > 目标：符合基本生产安全标准
 
-- 生产 `AUTH_SECRET` 使用强随机密钥
+- 生产 `NEXTAUTH_SECRET` 使用强随机密钥
 - 开发 key 与生产 key 完全分离
 - 审查限流配置（`src/server/ratelimit.ts`）
 - Webhook 端点验证签名

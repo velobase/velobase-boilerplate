@@ -25,7 +25,7 @@ interface TelegramResponse {
 async function main() {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.APP_URL ?? process.env.NEXTAUTH_URL;
 
   if (!botToken) {
     console.error("Error: TELEGRAM_BOT_TOKEN is not set");
@@ -37,7 +37,7 @@ async function main() {
 
   if (!webhookUrl || webhookUrl.includes("undefined")) {
     console.error(
-      "Error: Cannot determine webhook URL. Set WEBHOOK_URL or NEXT_PUBLIC_APP_URL"
+      "Error: Cannot determine webhook URL. Set WEBHOOK_URL or APP_URL"
     );
     process.exit(1);
   }

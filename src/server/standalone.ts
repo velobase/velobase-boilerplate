@@ -28,8 +28,21 @@ function shouldStart(service: string): boolean {
 
 const shutdowns: Array<() => Promise<void>> = [];
 
+function logResourceStatus() {
+  const mask = (v?: string) => v ? "configured" : "NOT SET";
+  const resources = {
+    DATABASE_URL: mask(process.env.DATABASE_URL),
+    REDIS: process.env.REDIS_URL ? "URL mode" : process.env.REDIS_HOST ? `HOST mode (${process.env.REDIS_HOST}:${process.env.REDIS_PORT ?? "6379"})` : "NOT SET",
+    STORAGE: process.env.STORAGE_BUCKET ? `${process.env.STORAGE_PROVIDER ?? "aws"} / ${process.env.STORAGE_BUCKET}` : "NOT SET",
+    NEXTAUTH_SECRET: mask(process.env.NEXTAUTH_SECRET),
+    APP_URL: process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "NOT SET",
+  };
+  log.info(resources, "Resource status");
+}
+
 async function start() {
   log.info({ SERVICE_MODE, modes }, "Starting services...");
+  logResourceStatus();
 
   if (shouldStart("api")) {
     const { startApi } = await import("@/api/start");

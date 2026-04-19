@@ -15,7 +15,7 @@ import { db } from "@/server/db";
 const logger = createLogger("support-lark-notify");
 
 // 回调 URL（飞书卡片点击后回调的地址）
-const CALLBACK_BASE_URL = process.env.NEXTAUTH_URL ?? "https://example.com";
+const CALLBACK_BASE_URL = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "https://example.com";
 
 /**
  * 分类对应的 emoji 和颜色

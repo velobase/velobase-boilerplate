@@ -185,7 +185,7 @@ const { setLoginModalOpen } = useAuthStore();
 
 | 变量             | 说明                    | 获取方式                            |
 | -------------- | --------------------- | ------------------------------- |
-| `AUTH_SECRET`  | NextAuth 加密密钥（生产环境必填） | 运行 `openssl rand -base64 32` 生成 |
+| `NEXTAUTH_SECRET`  | NextAuth 加密密钥（生产环境必填） | 运行 `openssl rand -base64 32` 生成 |
 | `DATABASE_URL` | PostgreSQL 连接字符串      | 数据库服务商提供                        |
 
 

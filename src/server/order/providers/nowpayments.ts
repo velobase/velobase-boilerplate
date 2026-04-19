@@ -413,16 +413,16 @@ export const nowpaymentsProvider: PaymentProvider = {
     // Do NOT call NowPayments during `order.checkout`.
     // We return our own hosted crypto payment page URL immediately, then the page will create the NowPayments invoice lazily.
     const callbackBase = (() => {
-      const u = payment.extra?.SuccessURL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+      const u = payment.extra?.SuccessURL ?? env.APP_URL ?? "";
       try {
         return new URL(u).origin;
       } catch {
-        return process.env.NEXT_PUBLIC_APP_URL ?? "";
+        return env.APP_URL ?? "";
       }
     })();
 
     // Redirect to our own hosted crypto checkout page for a unified UX
-    const base = callbackBase || process.env.NEXT_PUBLIC_APP_URL || "";
+    const base = callbackBase || env.APP_URL || "";
     const from = (() => {
       const cancel = payment.extra?.CancelURL;
       if (typeof cancel !== "string" || !cancel) return "";
@@ -442,15 +442,15 @@ export const nowpaymentsProvider: PaymentProvider = {
   async createSubscription({ payment, order }: { payment: ProviderPayment; order: ProviderOrder }) {
     // Same as createPayment: return hosted URL, lazily create NowPayments invoice on the payment page.
     const callbackBase = (() => {
-      const u = payment.extra?.SuccessURL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+      const u = payment.extra?.SuccessURL ?? env.APP_URL ?? "";
       try {
         return new URL(u).origin;
       } catch {
-        return process.env.NEXT_PUBLIC_APP_URL ?? "";
+        return env.APP_URL ?? "";
       }
     })();
 
-    const base = callbackBase || process.env.NEXT_PUBLIC_APP_URL || "";
+    const base = callbackBase || env.APP_URL || "";
     const from = (() => {
       const cancel = payment.extra?.CancelURL;
       if (typeof cancel !== "string" || !cancel) return "";

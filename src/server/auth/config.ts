@@ -268,7 +268,7 @@ export const authConfig = {
     signIn: '/auth/signin',
   },
   adapter: CustomPrismaAdapter(db),
-  secret: env.AUTH_SECRET,
+  secret: env.NEXTAUTH_SECRET,
   // Cookie secure 属性：
   // - Cloudflare Flexible SSL (CF → HTTP → 源站): 必须 secure=false
   // - 开发环境 (localhost HTTP): 必须 secure=false

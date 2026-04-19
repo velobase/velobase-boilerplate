@@ -27,7 +27,7 @@ export const githubRouter = createTRPCRouter({
 
   // Get GitHub OAuth authorization URL
   getAuthUrl: protectedProcedure.query(async ({ ctx }) => {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const baseUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const redirectUri = `${baseUrl}/api/auth/github/callback`;
     
     const params = new URLSearchParams({

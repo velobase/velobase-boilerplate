@@ -7,7 +7,8 @@ import {
   getStorageClient, 
   getStorageBucket, 
   generateFileKey,
-  getPublicUrl 
+  getPublicUrl,
+  resolveStorageKey,
 } from "@/server/storage";
 import { createLogger } from "@/lib/logger";
 
@@ -31,9 +32,8 @@ export const storageRouter = createTRPCRouter({
 
         const command = new PutObjectCommand({
           Bucket: bucket,
-          Key: key,
+          Key: resolveStorageKey(key),
           ContentType: input.contentType,
-          // Add metadata
           Metadata: {
             userId: ctx.session.user.id,
             originalFilename: input.filename,
@@ -83,7 +83,7 @@ export const storageRouter = createTRPCRouter({
 
         const command = new DeleteObjectCommand({
           Bucket: bucket,
-          Key: input.fileKey,
+          Key: resolveStorageKey(input.fileKey),
         });
 
         await s3Client.send(command);
@@ -121,7 +121,7 @@ export const storageRouter = createTRPCRouter({
 
         const command = new PutObjectCommand({
           Bucket: bucket,
-          Key: input.fileKey,
+          Key: resolveStorageKey(input.fileKey),
         });
 
         // Generate presigned URL (valid for 1 hour)

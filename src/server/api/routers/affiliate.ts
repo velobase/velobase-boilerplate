@@ -79,7 +79,7 @@ export const affiliateRouter = createTRPCRouter({
       ? await getAffiliateAccountBalances(userId)
       : { pendingCents: 0, availableCents: 0, lockedCents: 0, debtCents: 0 };
 
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const base = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "";
     const referralLink = referralCode ? `${base}/?ref=${encodeURIComponent(referralCode)}` : null;
 
     return {

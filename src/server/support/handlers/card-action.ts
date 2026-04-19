@@ -105,7 +105,7 @@ function buildResultCard(
   };
 
   const config = statusConfig[status];
-  const CALLBACK_BASE_URL = process.env.NEXTAUTH_URL ?? "https://example.com";
+  const CALLBACK_BASE_URL = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "https://example.com";
 
   return {
     config: {
