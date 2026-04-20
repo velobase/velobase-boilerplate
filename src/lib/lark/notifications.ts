@@ -4,7 +4,7 @@
  */
 
 import { createLogger } from '../logger';
-import { getLarkBot, getFeishuBot } from './index';
+import { getLarkBot, getFeishuBot, isLarkConfigured } from './index';
 import { LARK_CHAT_IDS, FEISHU_CHAT_IDS } from './constants';
 import type { LarkCard, LarkElement, LarkField, PaymentNotification } from './types';
 import { buildPaymentCard } from './cards/payment-card';
@@ -1130,6 +1130,10 @@ async function _sendVideoGenerationNotification(
 export async function sendPaymentNotification(
   data: PaymentNotification
 ): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ orderId: data.orderId }, 'Lark not configured, skipping payment notification');
+    return;
+  }
   const card = buildPaymentCard(data);
   const isSubscription = data.bizType === 'subscription';
   
@@ -1212,6 +1216,10 @@ function buildFrontendAlertFingerprint(data: FrontendAlertNotification): string 
  * 发送后端报警
  */
 export async function sendBackendAlert(data: BackendAlertNotification): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ title: data.title, severity: data.severity }, 'Lark not configured, skipping backend alert');
+    return;
+  }
   try {
     const bot = getLarkBot();
     const fingerprint = data.fingerprint ?? buildBackendAlertFingerprint(data);
@@ -1239,6 +1247,10 @@ export async function sendBackendAlert(data: BackendAlertNotification): Promise<
 export async function sendFrontendAlert(
   data: FrontendAlertNotification
 ): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ title: data.title, severity: data.severity }, 'Lark not configured, skipping frontend alert');
+    return;
+  }
   try {
     const bot = getLarkBot();
     const fingerprint = data.fingerprint ?? buildFrontendAlertFingerprint(data);
@@ -1266,6 +1278,10 @@ export async function sendFrontendAlert(
 export async function sendPromptAbuseNotification(
   data: PromptAbuseNotification
 ): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ blocked: data.blocked }, 'Lark not configured, skipping prompt abuse notification');
+    return;
+  }
   try {
     const bot = getLarkBot();
     
@@ -1309,6 +1325,10 @@ export async function sendPromptAbuseNotification(
 export async function sendEmailAbuseNotification(
   data: EmailAbuseNotification
 ): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ email: data.email, blocked: data.blocked }, 'Lark not configured, skipping email abuse notification');
+    return;
+  }
   try {
     const bot = getLarkBot();
     const card = buildEmailAbuseCard(data);
@@ -1334,6 +1354,10 @@ export async function sendEmailAbuseNotification(
 export async function sendQueueBoostNotification(
   data: QueueBoostNotification
 ): Promise<void> {
+  if (!isLarkConfigured()) {
+    logger.debug({ userId: data.userId }, 'Lark not configured, skipping queue boost notification');
+    return;
+  }
   try {
     const bot = getLarkBot();
     const card = buildQueueBoostCard(data);

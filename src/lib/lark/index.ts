@@ -27,6 +27,14 @@ let globalLarkBot: LarkBot | null = null;
 let globalFeishuBot: LarkBot | null = null;
 
 /**
+ * 检查 Lark Bot 是否已配置
+ * 未配置时各通知函数会静默跳过，避免日志噪音
+ */
+export function isLarkConfigured(): boolean {
+  return !!(env.LARK_APP_ID && env.LARK_APP_SECRET);
+}
+
+/**
  * 获取全局 Lark Bot 实例
  * 需要配置环境变量: LARK_APP_ID, LARK_APP_SECRET
  */
