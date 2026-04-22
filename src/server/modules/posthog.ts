@@ -1,7 +1,5 @@
 import type { FrameworkModule } from "@/server/modules/registry";
-import { getServerPostHog } from "@/analytics/server";
-import { BILLING_EVENTS } from "@/analytics/events/billing";
-import { db } from "@/server/db";
+import type { AppEventBus } from "@/server/events/bus";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("module:posthog");
@@ -10,8 +8,11 @@ export const posthogModule: FrameworkModule = {
   name: "posthog",
   enabled: true,
 
-  registerEventHandlers(bus) {
+  registerEventHandlers(bus: AppEventBus) {
     bus.on("payment:succeeded", async ({ paymentId, userId, gateway, amountCents, currency }) => {
+      const { getServerPostHog } = await import("@/analytics/server");
+      const { BILLING_EVENTS } = await import("@/analytics/events/billing");
+      const { db } = await import("@/server/db");
       const posthog = getServerPostHog();
       if (!posthog) return;
 

@@ -1,0 +1,40 @@
+name: Deploy to Velobase Cloud
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Velobase deploy config
+        id: config
+        run: |
+          CONFIG=$(curl -sf https://api.velobase.cloud/api/v1/deploy/config \
+            -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
+          echo "registry=$(echo $CONFIG | jq -r .registry)"     >> $GITHUB_OUTPUT
+          echo "repository=$(echo $CONFIG | jq -r .repository)" >> $GITHUB_OUTPUT
+          echo "username=$(echo $CONFIG | jq -r .username)"     >> $GITHUB_OUTPUT
+          echo "password=$(echo $CONFIG | jq -r .password)"     >> $GITHUB_OUTPUT
+
+      - name: Login to Velobase ACR
+        run: |
+          docker login ${{ steps.config.outputs.registry }} \
+            -u ${{ steps.config.outputs.username }} \
+            -p ${{ steps.config.outputs.password }}
+
+      - name: Build & Push image
+        run: |
+          IMAGE=${{ steps.config.outputs.repository }}:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Trigger deployment
+        run: |
+          curl -f -X POST https://api.velobase.cloud/api/v1/deploy \
+            -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"image_tag\": \"${{ github.sha }}\"}"

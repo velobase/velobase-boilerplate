@@ -1,4 +1,5 @@
 import type { FrameworkModule } from "@/server/modules/registry";
+import type { AppEventBus } from "@/server/events/bus";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("module:affiliate");
@@ -7,7 +8,7 @@ export const affiliateModule: FrameworkModule = {
   name: "affiliate",
   enabled: true,
 
-  registerEventHandlers(bus) {
+  registerEventHandlers(bus: AppEventBus) {
     bus.on("payment:succeeded", async ({ paymentId }) => {
       try {
         const { createAffiliateEarningForOrderPayment } = await import(
@@ -33,7 +34,7 @@ export const affiliateModule: FrameworkModule = {
       }
     });
 
-    bus.on("subscription:renewed", async ({ subscriptionId, userId, amountCents, currency }) => {
+    bus.on("subscription:renewed", async ({ subscriptionId, userId, amountCents }) => {
       if (amountCents <= 0) return;
       try {
         const { createAffiliateEarningForStripeSubscriptionRenewal } = await import(
@@ -44,7 +45,6 @@ export const affiliateModule: FrameworkModule = {
           subscriptionId,
           invoiceId: `event_bus:renewal:${subscriptionId}:${Date.now()}`,
           amountCents,
-          currency,
         });
       } catch (error) {
         log.warn({ error, subscriptionId }, "Affiliate subscription renewal earning failed");

@@ -1,4 +1,5 @@
 import type { FrameworkModule } from "@/server/modules/registry";
+import type { AppEventBus } from "@/server/events/bus";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("module:lark");
@@ -7,7 +8,7 @@ export const larkModule: FrameworkModule = {
   name: "lark",
   enabled: true,
 
-  registerEventHandlers(bus) {
+  registerEventHandlers(bus: AppEventBus) {
     bus.on("payment:succeeded", async ({ paymentId }) => {
       try {
         const { sendOrderPaymentNotificationByPaymentId } = await import(
@@ -62,7 +63,7 @@ export const larkModule: FrameworkModule = {
         asyncSendBackendAlert({
           title: "Stripe Early Fraud Warning",
           severity: "critical",
-          source: "webhook",
+          source: "payment",
           metadata: { warning },
         });
       } catch (error) {

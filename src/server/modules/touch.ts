@@ -1,4 +1,5 @@
 import type { FrameworkModule } from "@/server/modules/registry";
+import type { AppEventBus } from "@/server/events/bus";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("module:touch");
@@ -7,7 +8,7 @@ export const touchModule: FrameworkModule = {
   name: "touch",
   enabled: true,
 
-  registerEventHandlers(bus) {
+  registerEventHandlers(bus: AppEventBus) {
     bus.on("subscription:canceled", async ({ subscriptionId, cancelAtPeriodEnd }) => {
       if (!cancelAtPeriodEnd) return;
 

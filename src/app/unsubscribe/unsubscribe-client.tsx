@@ -10,21 +10,18 @@ import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useAuthStore } from "@/components/auth/store/auth-store";
 import { useSession } from "next-auth/react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileShell } from "@/components/layout/mobile-shell";
-import { DesktopShell } from "@/components/layout/desktop-shell";
 
 export function UnsubscribeClient() {
   const isMobile = useIsMobile();
-  const Shell = isMobile ? MobileShell : DesktopShell;
 
   return (
-    <Shell>
+    <div className={isMobile ? "min-h-screen" : "min-h-screen flex items-center justify-center"}>
       <div className="flex-1 flex flex-col justify-center">
         <Suspense fallback={<div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}>
           <UnsubscribeContent />
         </Suspense>
       </div>
-    </Shell>
+    </div>
   );
 }
 

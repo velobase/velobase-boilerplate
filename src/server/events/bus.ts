@@ -57,7 +57,7 @@ export type EventPayload = {
 
 type Handler<T> = (payload: T) => Promise<void>;
 
-class AppEventBus {
+export class AppEventBus {
   private listeners = new Map<string, Array<Handler<unknown>>>();
 
   on<K extends keyof EventPayload>(

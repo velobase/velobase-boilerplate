@@ -1,0 +1,80 @@
+name: Deploy to Velobase Cloud (Multi-Pod)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Velobase deploy config
+        id: config
+        run: |
+          CONFIG=$(curl -sf https://api.velobase.cloud/api/v1/deploy/config \
+            -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
+          echo "registry=$(echo $CONFIG | jq -r .registry)"     >> $GITHUB_OUTPUT
+          echo "repository=$(echo $CONFIG | jq -r .repository)" >> $GITHUB_OUTPUT
+          echo "username=$(echo $CONFIG | jq -r .username)"     >> $GITHUB_OUTPUT
+          echo "password=$(echo $CONFIG | jq -r .password)"     >> $GITHUB_OUTPUT
+
+      - name: Login to Velobase ACR
+        run: |
+          docker login ${{ steps.config.outputs.registry }} \
+            -u ${{ steps.config.outputs.username }} \
+            -p ${{ steps.config.outputs.password }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js (required for web image)
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Create empty .env for Docker builds
+        run: touch .env
+
+      - name: Build & Push per-service images
+        run: |
+          REPO=${{ steps.config.outputs.repository }}
+          SHA=${{ github.sha }}
+
+          docker build -f Dockerfile.web    -t $REPO:web-$SHA .
+          docker build -f Dockerfile.api    -t $REPO:api-$SHA .
+          docker build -f Dockerfile.worker -t $REPO:worker-$SHA .
+
+          docker push $REPO:web-$SHA
+          docker push $REPO:api-$SHA
+          docker push $REPO:worker-$SHA
+
+      - name: Deploy (multi-pod)
+        run: |
+          SHA=${{ github.sha }}
+          curl -f -X POST https://api.velobase.cloud/api/v1/deploy \
+            -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"image_tag\": \"$SHA\",
+              \"services\": [
+                {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\"},
+                {\"name\": \"api\",    \"mode\": \"api\",    \"port\": 3002, \"health\": \"/health\",  \"image_tag\": \"api-$SHA\"},
+                {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\"}
+              ],
+              \"commit_sha\": \"$SHA\",
+              \"commit_message\": \"$(git log -1 --pretty=format:'%s' | head -c 200)\",
+              \"trigger_ref\": \"$(git rev-parse --abbrev-ref HEAD)\"
+            }"

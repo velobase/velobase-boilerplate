@@ -8,13 +8,26 @@ import { adminRouter } from "@/server/admin/routers";
 import { accountRouter } from "@/server/api/routers/account";
 import { notificationRouter } from "@/server/api/routers/notification";
 import { exampleRouter } from "@/modules/example/server/router";
+import { agentRouter } from "@/server/api/routers/agent";
+import { userAgentRouter } from "@/server/api/routers/user-agent";
+import { conversationRouter } from "@/server/api/routers/conversation";
+import { projectRouter } from "@/server/api/routers/project";
+import { repositoryRouter } from "@/server/api/routers/repository";
+import { githubRouter } from "@/server/api/routers/github";
+import { affiliateRouter } from "@/server/api/routers/affiliate";
+import { telegramRouter } from "@/server/telegram/router";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { MODULES } from "@/config/modules";
 
-/* ------------------------------------------------------------------ */
-/* Core routers — always present                                       */
-/* ------------------------------------------------------------------ */
-const coreRouters = {
+/**
+ * All routers are imported statically for full type safety. The module
+ * config system (src/config/modules.ts) controls runtime behaviour via
+ * middleware guards and webhook route guards — disabled modules' procedures
+ * still exist in the type system but will fail at runtime if called when
+ * the module is off. This is the intended tradeoff: type-safe DX over
+ * dead-code elimination.
+ */
+export const appRouter = createTRPCRouter({
+  // Core — always present
   admin: adminRouter,
   storage: storageRouter,
   product: productRouter,
@@ -25,54 +38,20 @@ const coreRouters = {
   notification: notificationRouter,
   account: accountRouter,
   example: exampleRouter,
-};
 
-/* ------------------------------------------------------------------ */
-/* Optional routers — guarded by config flags                          */
-/* ------------------------------------------------------------------ */
-function loadOptionalRouters() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const optional: Record<string, any> = {};
+  // AI Chat module
+  agent: agentRouter,
+  userAgent: userAgentRouter,
+  conversation: conversationRouter,
+  project: projectRouter,
+  repository: repositoryRouter,
+  github: githubRouter,
 
-  if (MODULES.features.aiChat.enabled) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { agentRouter } = require("@/server/api/routers/agent") as { agentRouter: unknown };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { userAgentRouter } = require("@/server/api/routers/user-agent") as { userAgentRouter: unknown };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { conversationRouter } = require("@/server/api/routers/conversation") as { conversationRouter: unknown };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { projectRouter } = require("@/server/api/routers/project") as { projectRouter: unknown };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { repositoryRouter } = require("@/server/api/routers/repository") as { repositoryRouter: unknown };
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { githubRouter } = require("@/server/api/routers/github") as { githubRouter: unknown };
-    optional.agent = agentRouter;
-    optional.userAgent = userAgentRouter;
-    optional.conversation = conversationRouter;
-    optional.project = projectRouter;
-    optional.repository = repositoryRouter;
-    optional.github = githubRouter;
-  }
+  // Affiliate module
+  affiliate: affiliateRouter,
 
-  if (MODULES.features.affiliate.enabled) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { affiliateRouter } = require("@/server/api/routers/affiliate") as { affiliateRouter: unknown };
-    optional.affiliate = affiliateRouter;
-  }
-
-  if (MODULES.integrations.messaging.telegram.enabled) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { telegramRouter } = require("@/server/telegram/router") as { telegramRouter: unknown };
-    optional.telegram = telegramRouter;
-  }
-
-  return optional;
-}
-
-export const appRouter = createTRPCRouter({
-  ...coreRouters,
-  ...loadOptionalRouters(),
+  // Telegram module
+  telegram: telegramRouter,
 });
 
 export type AppRouter = typeof appRouter;
